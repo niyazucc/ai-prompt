@@ -112,6 +112,81 @@ Pastikan visual yang konsisten.
 Buatkan gambar size 9:16.`;
 }
 
+function generateAnimationImagePrompt(data: PromptFormData): string {
+  const color1 = data.values.hookColor1 ?? 'Putih';
+  const color2 = data.values.hookColor2 ?? 'Putih';
+
+  return `Gunakan overview dan skrip animasi yang telah dipersetujui.
+
+1. Hasilkan satu gambar animasi berkualiti tinggi berdasarkan Scene.
+
+2. Gunakan watak ${data.values.watak ?? 'Produk sebagai watak utama'}, mood ${data.values.mood ?? 'High Energy'} dan latar ${data.values.lokasi ?? 'Dramatic Glowing Background'}.
+
+3. Pastikan gaya animasi, reka bentuk watak, warna, lighting dan visual konsisten untuk semua scene.
+
+4. Lighting mesti sesuai dengan emosi scene dan menghasilkan depth yang cinematic.
+
+5. Camera angle mesti dinamik dan kelihatan seperti babak filem animasi profesional.
+
+6. Jangan masukkan sebarang tulisan, subtitle, watermark atau teks dalam gambar kecuali hook pada gambar 1 sahaja. Tulisan hook untuk baris pertama warna ${color1} dan baris kedua warna ${color2}.
+
+Pastikan ikut kedudukan hook di bawah:
+
+Jarak dari atas:
+- 200 px dari bahagian atas gambar
+- Lebih kurang 15% daripada tinggi gambar
+
+Jarak kiri dan kanan:
+- Minimum 80 px dari tepi kiri dan kanan
+- Pastikan teks berada dalam kawasan tengah selebar lebih kurang 920 px
+
+Baris 1 ${color1}
+Font size: 90–110 px
+
+Baris 2 ${color2}
+Font size: 100–120 px
+
+Jarak antara baris: 15–25 px
+
+7. Pastikan produk kekal 100 peratus sama seperti gambar asal dari segi design, warna, saiz, bentuk, label, logo dan pembungkusan.
+
+8. Fokus kepada ekspresi, pergerakan dan emosi watak animasi.
+
+Pastikan visual yang konsisten.
+
+Buatkan gambar size 9:16.`;
+}
+
+function generateGoyangImagePrompt(data: PromptFormData): string {
+  const color1 = data.values.warna1 ?? 'Putih';
+  const color2 = data.values.warna2 ?? 'Putih';
+
+  return `Daripada gambar produk yang saya upload, hasilkan ${data.values.gambar ?? '3 Gambar'} untuk konsep Goyang2.
+
+1. Jadikan produk sebagai fokus utama dan pastikan setiap gambar kelihatan seperti visual iklan komersial berkualiti tinggi.
+
+2. Gunakan komposisi yang bertenaga, lighting yang menarik dan camera angle yang berbeza tetapi konsisten antara semua gambar.
+
+3. Jangan ubah design, warna, saiz, bentuk, label, logo atau pembungkusan produk. Produk mesti kekal 100 peratus sama seperti gambar asal.
+
+4. Jangan masukkan subtitle, watermark atau teks lain kecuali hook dua baris pada gambar pertama sahaja.
+
+Tetapan hook gambar pertama:
+- Baris 1: ${color1}, font size 90–110 px
+- Baris 2: ${color2}, font size 100–120 px
+- Jarak antara baris: 15–25 px
+- Kedudukan: 200 px dari atas, lebih kurang 15% daripada tinggi gambar
+- Minimum 80 px dari tepi kiri dan kanan
+- Kawasan teks di tengah selebar lebih kurang 920 px
+- Maksimum 5 perkataan secara keseluruhan
+
+5. Pastikan environment nampak hidup, realistik dan sesuai dengan identiti produk.
+
+6. Pastikan semua gambar mempunyai gaya visual, warna dan mood yang konsisten.
+
+7. Buatkan semua gambar dalam size 9:16.`;
+}
+
 function generateStandardFlowPrompt(): string {
   return `Gunakan overview dan skrip yang telah dipersetujui.
 
@@ -162,16 +237,61 @@ Terus hasilkan prompt untuk scene seterusnya dengan gaya visual dan emosi yang k
 Pastikan produk 100 peratus sama dengan gambar yang saya bagi. Pastikan sama dari segi design, warna dan size. Jangan ubah apa-apa.`;
 }
 
+function generateGoyangFlowPrompt(): string {
+  return `Gunakan siri gambar Goyang2 yang telah dipersetujui.
+
+Mulakan dengan GAMBAR 1 sahaja.
+
+Arahan penting:
+
+1. Hasilkan prompt animasi untuk Google Flow AI.
+
+2. Semua description mesti dalam Bahasa English.
+
+3. Tiada dialog, narration atau subtitle.
+
+4. Gunakan pergerakan kamera dan produk yang smooth, bertenaga dan sesuai untuk video jualan.
+
+5. Setiap klip mesti berdurasi 8 saat dengan natural pacing.
+
+6. Jangan masukkan penerangan tambahan di luar prompt.
+
+7. Tulis prompt terus dalam format yang boleh di-copy dan paste ke Google Flow.
+
+8. Hook pada gambar pertama mesti muncul dari saat 0 hingga 3 saat sahaja. Jangan ubah warna, kedudukan, font atau teks hook.
+
+Struktur yang mesti ada dalam prompt:
+
+Scene environment description (English)
+
+Lighting and camera movement (English)
+
+Product movement and visual effects (English)
+
+Terus hasilkan prompt untuk GAMBAR 1 sekarang.
+
+Selepas itu, tunggu arahan saya.
+
+Apabila saya taip: NEXT
+
+Terus hasilkan prompt untuk gambar seterusnya dengan gaya visual, pergerakan dan emosi yang konsisten.
+
+Pastikan produk 100 peratus sama dengan gambar yang saya bagi dari segi design, warna, size, bentuk, label, logo dan pembungkusan. Jangan ubah apa-apa.`;
+}
+
 export function generatePrompt(data: PromptFormData): string {
   if (data.contentType === 'standard' && data.activeTab === 'Dialog') {
     return generateStandardDialogPrompt(data);
   }
 
-  if (data.contentType === 'standard' && data.activeTab === 'Gambar') {
+  if (data.activeTab === 'Gambar') {
+    if (data.contentType === 'animasi') return generateAnimationImagePrompt(data);
+    if (data.contentType === 'goyang') return generateGoyangImagePrompt(data);
     return generateStandardImagePrompt(data);
   }
 
-  if (data.contentType === 'standard' && data.activeTab === 'Prompt Flow') {
+  if (data.activeTab === 'Prompt Flow') {
+    if (data.contentType === 'goyang') return generateGoyangFlowPrompt();
     return generateStandardFlowPrompt();
   }
 

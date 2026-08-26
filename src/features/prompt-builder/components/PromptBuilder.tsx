@@ -47,8 +47,9 @@ export function PromptBuilder({ userName, onLogout }: PromptBuilderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const selectedType = contentTypes.find((item) => item.id === formData.contentType) ?? contentTypes[0];
-  const isStandardImage = formData.contentType === 'standard' && formData.activeTab === 'Gambar';
-  const isStandardFlow = formData.contentType === 'standard' && formData.activeTab === 'Prompt Flow';
+  const isImageTab = formData.activeTab === 'Gambar';
+  const isFlowTab = formData.activeTab === 'Prompt Flow';
+  const isGoyangImage = formData.contentType === 'goyang' && isImageTab;
 
   function handleCategoryChange(contentType: ContentType) {
     const config = contentTypes.find((item) => item.id === contentType) ?? contentTypes[0];
@@ -166,7 +167,7 @@ export function PromptBuilder({ userName, onLogout }: PromptBuilderProps) {
                 ))}
               </div>
 
-              {isStandardFlow ? (
+              {isFlowTab ? (
                 <div className="flow-copy-card">
                   <span className="flow-copy-icon"><Sparkles size={20} /></span>
                   <h3>Prompt Flow</h3>
@@ -175,14 +176,24 @@ export function PromptBuilder({ userName, onLogout }: PromptBuilderProps) {
                     <Clipboard size={18} /> Auto Copy Prompt
                   </button>
                 </div>
-              ) : isStandardImage ? (
+              ) : isImageTab ? (
                 <div className="image-prompt-options">
                   <div className="subpanel-heading">
                     <h3>Pilihan Prompt Gambar</h3>
                     <p>Tetapkan warna hook untuk gambar pertama.</p>
                   </div>
-                  <SelectField id="hook-color-1" label="1. Warna Hook — Baris 1" value={formData.values.hookColor1 ?? 'Putih'} options={hookColors} onChange={(value) => updateValue('hookColor1', value)} />
-                  <SelectField id="hook-color-2" label="2. Warna Hook — Baris 2" value={formData.values.hookColor2 ?? 'Putih'} options={hookColors} onChange={(value) => updateValue('hookColor2', value)} />
+                  {isGoyangImage ? (
+                    <>
+                      {selectedType.fields.map((field, index) => (
+                        <SelectField key={field.id} id={field.id} label={`${index + 1}. ${field.label}`} value={formData.values[field.id] ?? field.options[0]} options={field.options} onChange={(value) => updateValue(field.id, value)} />
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      <SelectField id="hook-color-1" label="1. Warna Hook — Baris 1" value={formData.values.hookColor1 ?? 'Putih'} options={hookColors} onChange={(value) => updateValue('hookColor1', value)} />
+                      <SelectField id="hook-color-2" label="2. Warna Hook — Baris 2" value={formData.values.hookColor2 ?? 'Putih'} options={hookColors} onChange={(value) => updateValue('hookColor2', value)} />
+                    </>
+                  )}
                   <button className="generate-button" type="button" onClick={handleGenerate}>
                     <Sparkles size={18} /> Generate & Auto Copy Prompt <ArrowRight size={18} />
                   </button>
