@@ -17,75 +17,56 @@ const categoryDirections: Record<PromptFormData['contentType'], string> = {
 
 function generateStandardDialogPrompt(data: PromptFormData): string {
   const value = (id: string) => data.values[id] ?? '[AUTO]';
-  const context = data.context.trim() || 'Tiada konteks tambahan. Gunakan gambar produk yang dimuat naik sebagai sumber utama.';
+  const context = data.context.trim();
 
-  return `Daripada gambar yang saya upload, analisis produk terlebih dahulu.
+  return `Daripada gambar yang di-upload, lengkapkan maklumat produk berikut secara automatik.
 
-MAKLUMAT PRODUK
+Maklumat produk:
 
-Nama produk: [PILIH SECARA AUTO DARIPADA GAMBAR]
+Nama produk: [ISI]
 
-Kelebihan utama produk: [PILIH SECARA AUTO DARIPADA GAMBAR — SENARAIKAN 3 HINGGA 5 POINT RINGKAS]
+Kelebihan utama produk: [ISI 3–5 POINT RINGKAS]
 
-Masalah yang produk selesaikan: [PILIH SECARA AUTO DARIPADA GAMBAR]
+Masalah yang produk selesaikan: [ISI]
 
-Sasaran pengguna: [PILIH SECARA AUTO DARIPADA GAMBAR — LELAKI / PEREMPUAN / UMUM BESERTA ANGGARAN UMUR]
+Sasaran pengguna: [LELAKI / PEREMPUAN / UMUM + ANGGARAN UMUR]
 
-Jangan minta saya mengisi maklumat produk di atas. Kenal pasti semuanya secara automatik berdasarkan gambar produk yang saya upload dalam ChatGPT. Jika sesuatu maklumat tidak dapat dipastikan daripada gambar, nyatakan sebagai andaian dan jangan mereka-reka fakta.
+[Untuk nama produk, kelebihan utama produk, masalah yang produk selesaikan dan sasaran pengguna, pilih dan isi secara automatik mengikut gambar yang di-upload dalam ChatGPT. Jangan minta pengguna mengisi maklumat ini.]
 
-MAKLUMAT VIDEO
+Maklumat video:
 
-- Jenis video: ${value('tujuan')}
-- Jumlah scene: ${value('scene')}
-- Tempoh setiap scene: 8 saat
-- Watak: ${value('watak')}
-- Lokasi: ${value('lokasi')}
-- Gaya bercakap: ${value('gaya')}
-- Jenis hook: ${value('hook')}
-- CTA: ${value('cta')}
-- Konteks tambahan: ${context}
+Jumlah scene: ${value('scene')} [1 scene = 8 saat]
 
-ARAHAN OVERVIEW DAN SKRIP
+Gaya bercakap: ${value('gaya').toUpperCase()}
 
-1. Cadangkan overview idea untuk SEMUA scene berdasarkan jumlah scene yang dipilih.
+Overview:
+
+1. Cadangkan overview idea untuk SEMUA scene berdasarkan jumlah scene yang saya pilih.
 2. Satu scene bersamaan 8 saat.
-3. Terus masukkan skrip dialog Bahasa Melayu untuk setiap scene.
-4. Watak mesti bercakap secara direct kepada kamera. Tiada narration atau suara latar.
-5. Skrip mesti natural, santai dan kedengaran seperti bercakap dengan kawan.
-6. Pastikan panjang dialog realistik untuk disebut dalam masa 8 saat.
-7. Jangan asingkan penerangan secara terlalu teknikal. Tulis dengan ringkas dan mudah difahami.
-8. Susun hasil tepat mengikut format berikut sehingga semua scene lengkap:
+3. Terus masukkan skrip dialog untuk setiap scene dalam Bahasa Melayu sahaja.
+4. Watak bercakap secara direct kepada kamera. Tiada narration.
+5. Skrip mesti natural seperti bercakap dengan kawan.
+6. Pastikan dialog sesuai untuk dituturkan dalam tempoh 8 saat bagi setiap scene.
+7. Jangan asingkan penerangan secara terlalu teknikal. Tulis secara ringkas dan mudah difahami.
+8. Susun mengikut format berikut sehingga semua scene lengkap:
 
 Scene 1 (8 saat)
-- Overview:
-- Visual dan aksi:
-- Dialog:
-- Teks pada gambar:
 
 Scene 2 (8 saat)
-- Overview:
-- Visual dan aksi:
-- Dialog:
-- Teks pada gambar: Tiada
 
-Teruskan format yang sama untuk scene seterusnya.
+dan seterusnya sehingga lengkap.
 
-ARAHAN KHAS SCENE PERTAMA
+Buatkan watak ${value('watak')} berada di ${value('lokasi')}. Buatkan jenis video ${value('tujuan').toLowerCase()}. Buatkan ${value('scene')} beserta CTA ${value('cta').toLowerCase()}.
 
-- Letakkan hook pada gambar untuk Scene 1 sahaja.
-- Hook mesti menggunakan pendekatan ${value('hook')}.
-- Hook mesti mempunyai tepat 2 baris.
-- Keseluruhan hook maksimum 5 perkataan sahaja.
-- Jangan letakkan hook atau teks tambahan pada gambar untuk scene lain kecuali diperlukan bagi CTA.
+Jangan ubah saiz, bentuk atau design produk. Pastikan warna, label, logo dan pembungkusan produk kekal sama 100 peratus seperti gambar yang saya berikan.
 
-ARAHAN PRODUK DAN CTA
+Untuk scene pertama sahaja, letakkan hook pada gambar. Pastikan hook menggunakan jenis ${value('hook')}, mempunyai tepat 2 baris ayat dan maksimum 5 perkataan sahaja secara keseluruhan. Jangan letakkan hook pada scene lain.
 
-- Akhiri scene terakhir dengan CTA “${value('cta')}”.
-- Jangan ubah saiz, bentuk, warna, label, logo, pembungkusan atau reka bentuk produk.
-- Produk mesti kekal 100% sama seperti gambar asal yang saya berikan dalam setiap scene.
-- Jangan tambah ciri, tuntutan, harga atau promosi yang tidak kelihatan atau tidak diberikan.
+Pastikan scene terakhir mempunyai CTA ${value('cta').toLowerCase()}. Jangan mereka-reka fakta, harga, promosi, testimoni atau kelebihan produk yang tidak dapat dikenal pasti daripada gambar.${context ? `
 
-Sila minta saya upload gambar produk dahulu jika gambar belum diberikan. Selepas gambar diterima, paparkan analisis ringkas maklumat produk dan terus hasilkan semua scene lengkap tanpa bertanya soalan tambahan.`;
+Arahan tambahan: ${context}` : ''}
+
+Jika gambar produk belum diberikan, minta saya upload gambar dahulu. Selepas gambar diterima, terus lengkapkan maklumat produk dan hasilkan semua scene tanpa bertanya soalan tambahan.`;
 }
 
 export function generatePrompt(data: PromptFormData): string {

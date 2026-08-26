@@ -7,8 +7,8 @@ export const contentTypes: ContentTypeOption[] = [
     tabs: ['Dialog', 'Gambar', 'Prompt Flow'],
     fields: [
       { id: 'tujuan', label: 'Tujuan video', options: ['Jualan', 'Kesedaran jenama', 'Pendidikan', 'Testimoni'] },
-      { id: 'watak', label: 'Watak', options: ['Perempuan memakai tudung', 'Perempuan tidak memakai tudung', 'Lelaki dewasa', 'Pasangan suami isteri', 'Tanpa watak'] },
-      { id: 'lokasi', label: 'Lokasi', options: ['Kampung', 'Bandar', 'Rumah moden', 'Pejabat', 'Kedai', 'Kafe', 'Luar bangunan'] },
+      { id: 'watak', label: 'Watak', options: ['Lelaki', 'Perempuan memakai tudung', 'Perempuan tidak memakai tudung', 'Pasangan suami isteri', 'Tanpa watak'] },
+      { id: 'lokasi', label: 'Lokasi', options: ['Bandar', 'Kampung', 'Rumah moden', 'Pejabat', 'Kedai', 'Kafe', 'Luar bangunan'] },
       { id: 'scene', label: 'Berapa scene', options: ['3 scene', '4 scene', '5 scene', '6 scene'] },
       { id: 'hook', label: 'Hook', options: ['Problem', 'Soalan', 'Kejutan', 'Hasil', 'Testimoni'] },
       { id: 'gaya', label: 'Gaya bercakap', options: ['Santai', 'Yakin', 'Mesra', 'Bertenaga', 'Profesional'] },
