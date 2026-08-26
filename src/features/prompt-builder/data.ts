@@ -1,23 +1,76 @@
-import type { ContentTypeOption, PromptFormData } from './types';
+import type { ContentType, ContentTypeOption, PromptFormData } from './types';
 
 export const contentTypes: ContentTypeOption[] = [
-  { id: 'sales', label: 'Ayat jualan', shortLabel: 'Jualan', description: 'Ayat jualan berimpak tinggi untuk tawaran dan kempen.' },
-  { id: 'social', label: 'Hantaran media sosial', shortLabel: 'Sosial', description: 'Hantaran menarik yang disesuaikan untuk platform anda.' },
-  { id: 'email', label: 'Kempen e-mel', shortLabel: 'E-mel', description: 'E-mel yang mendorong pembukaan, klik dan balasan.' },
-  { id: 'product', label: 'Penerangan produk', shortLabel: 'Produk', description: 'Penerangan berasaskan manfaat yang meyakinkan.' },
-  { id: 'video', label: 'Skrip video', shortLabel: 'Video', description: 'Skrip tersusun dengan pembuka dan arahan yang jelas.' },
+  {
+    id: 'standard', label: 'Standard', shortLabel: 'Standard',
+    description: 'Video jualan dengan watak, lokasi dan dialog yang tersusun.',
+    tabs: ['Dialog', 'Gambar', 'Prompt Flow'],
+    fields: [
+      { id: 'tujuan', label: 'Tujuan video', options: ['Jualan', 'Kesedaran jenama', 'Pendidikan', 'Testimoni'] },
+      { id: 'watak', label: 'Watak', options: ['Perempuan memakai tudung', 'Perempuan tidak memakai tudung', 'Lelaki dewasa', 'Pasangan suami isteri', 'Tanpa watak'] },
+      { id: 'lokasi', label: 'Lokasi', options: ['Kampung', 'Bandar', 'Rumah moden', 'Pejabat', 'Kedai', 'Kafe', 'Luar bangunan'] },
+      { id: 'scene', label: 'Berapa scene', options: ['3 scene', '4 scene', '5 scene', '6 scene'] },
+      { id: 'hook', label: 'Hook', options: ['Problem', 'Soalan', 'Kejutan', 'Hasil', 'Testimoni'] },
+      { id: 'gaya', label: 'Gaya bercakap', options: ['Santai', 'Yakin', 'Mesra', 'Bertenaga', 'Profesional'] },
+      { id: 'cta', label: 'CTA', options: ['Beg kuning', 'Klik link di bio', 'WhatsApp sekarang', 'Beli sekarang', 'DM untuk order'] },
+    ],
+    info: 'Tiada pilihan muat naik gambar di halaman ini. Prompt yang terhasil akan meminta ChatGPT menganalisis gambar produk yang anda muat naik terus dalam chat.',
+  },
+  {
+    id: 'podcast', label: 'Podcast', shortLabel: 'Podcast',
+    description: 'Perbualan podcast semula jadi untuk memperkenalkan produk.',
+    tabs: ['Dialog', 'Gambar', 'Prompt Flow'],
+    fields: [
+      { id: 'format', label: 'Format podcast', options: ['Temu bual', 'Dua hos berbual', 'Solo', 'Soal jawab pelanggan'] },
+      { id: 'watak', label: 'Bilangan watak', options: ['2 orang', '1 orang', '3 orang'] },
+      { id: 'durasi', label: 'Durasi', options: ['30 saat', '60 saat', '90 saat', '3 minit'] },
+      { id: 'hook', label: 'Hook', options: ['Problem', 'Soalan panas', 'Pengakuan', 'Fakta mengejutkan'] },
+      { id: 'gaya', label: 'Gaya perbualan', options: ['Santai', 'Berinformasi', 'Lucu', 'Profesional'] },
+    ],
+    info: 'Nama produk, kelebihan dan sasaran pelanggan boleh dikenal pasti daripada gambar produk yang dimuat naik terus dalam ChatGPT.',
+  },
+  {
+    id: 'animasi', label: 'Animasi', shortLabel: 'Animasi',
+    description: 'Produk animasi sebagai watak utama dalam visual bertenaga.',
+    tabs: ['Dialog', 'Gambar', 'Prompt Flow'],
+    fields: [
+      { id: 'scene', label: 'Jumlah scene', options: ['3 Scene', '4 Scene', '5 Scene', '6 Scene'] },
+      { id: 'watak', label: 'Watak animasi', options: ['Produk sebagai watak utama', 'Maskot jenama', 'Watak manusia 3D', 'Watak kartun 2D'] },
+      { id: 'mood', label: 'Mood', options: ['High Energy', 'Fun & Playful', 'Premium & Elegant', 'Cute & Friendly', 'Dramatic'] },
+      { id: 'lokasi', label: 'Tempat / Background', options: ['Dramatic Glowing Background', 'Studio Minimalis', 'Dunia Fantasi', 'Bandar Futuristik', 'Latar Warna Jenama'] },
+    ],
+    info: 'Nama produk, kelebihan produk, sasaran audiens dan masalah pelanggan akan dikenal pasti secara automatik berdasarkan gambar yang telah dimuat naik dalam ChatGPT.',
+  },
+  {
+    id: 'pov', label: 'P.O.V', shortLabel: 'P.O.V',
+    description: 'Visual sudut pandangan pertama yang terasa dekat dan autentik.',
+    tabs: ['Dialog', 'Gambar', 'Prompt Flow'],
+    fields: [
+      { id: 'scene', label: 'Jumlah scene', options: ['3 Scene', '4 Scene', '5 Scene', '6 Scene'] },
+      { id: 'tangan', label: 'Pilihan tangan', options: ['Tangan Lelaki', 'Tangan Perempuan', 'Tangan memakai sarung', 'Tanpa tangan'] },
+      { id: 'mood', label: 'Mood', options: ['Santai', 'Premium', 'Bertenaga', 'Cozy', 'Dramatik'] },
+      { id: 'lokasi', label: 'Tempat / Lokasi', options: ['Meja Kerja Minimalis', 'Dapur Moden', 'Dalam Kereta', 'Bilik Tidur Cozy', 'Luar Bangunan'] },
+    ],
+    info: 'Nama produk, kelebihan produk, masalah pelanggan dan sasaran pelanggan akan dikenal pasti secara automatik berdasarkan gambar produk yang telah dimuat naik dalam ChatGPT.',
+  },
+  {
+    id: 'goyang', label: 'Goyang2', shortLabel: 'Goyang2',
+    description: 'Siri visual produk dengan hook teks yang konsisten.',
+    tabs: ['Gambar', 'Prompt Flow'],
+    fields: [
+      { id: 'gambar', label: 'Berapa gambar', options: ['3 Gambar', '4 Gambar', '5 Gambar', '6 Gambar'] },
+      { id: 'warna1', label: 'Warna hook — Baris 1', options: ['Putih', 'Kuning', 'Hitam', 'Merah', 'Hijau Neon'] },
+      { id: 'warna2', label: 'Warna hook — Baris 2', options: ['Putih', 'Kuning', 'Hitam', 'Merah', 'Hijau Neon'] },
+    ],
+    info: 'Prompt akan menghasilkan siri visual goyang yang konsisten berdasarkan gambar produk yang anda muat naik terus dalam ChatGPT.',
+  },
 ];
 
-export const channels = ['Halaman pendaratan', 'Instagram', 'TikTok', 'LinkedIn', 'E-mel', 'WhatsApp', 'Pasar dalam talian'];
-export const tones = ['Yakin', 'Mesra', 'Berani', 'Premium', 'Santai', 'Berinformasi'];
-export const goals = ['Mendorong pembelian', 'Mendapatkan prospek', 'Membina kesedaran', 'Melancarkan produk', 'Menyasarkan semula pelawat', 'Memulakan perbualan'];
+export function getInitialValues(contentType: ContentType): Record<string, string> {
+  const config = contentTypes.find((item) => item.id === contentType) ?? contentTypes[0];
+  return Object.fromEntries(config.fields.map((field) => [field.id, field.options[0]]));
+}
 
 export const initialFormData: PromptFormData = {
-  contentType: 'sales',
-  product: '',
-  audience: 'Pemilik perniagaan kecil yang sibuk',
-  channel: 'Halaman pendaratan',
-  tone: 'Yakin',
-  goal: 'Mendorong pembelian',
-  context: '',
+  contentType: 'standard', activeTab: 'Dialog', values: getInitialValues('standard'), context: '',
 };

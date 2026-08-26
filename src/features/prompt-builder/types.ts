@@ -1,13 +1,10 @@
-export type ContentType = 'sales' | 'social' | 'email' | 'product' | 'video';
+export type ContentType = 'standard' | 'podcast' | 'animasi' | 'pov' | 'goyang';
+export type PromptTab = 'Dialog' | 'Gambar' | 'Prompt Flow';
 
-export interface PromptFormData {
-  contentType: ContentType;
-  product: string;
-  audience: string;
-  channel: string;
-  tone: string;
-  goal: string;
-  context: string;
+export interface PromptField {
+  id: string;
+  label: string;
+  options: string[];
 }
 
 export interface ContentTypeOption {
@@ -15,4 +12,14 @@ export interface ContentTypeOption {
   label: string;
   shortLabel: string;
   description: string;
+  tabs: PromptTab[];
+  fields: PromptField[];
+  info: string;
+}
+
+export interface PromptFormData {
+  contentType: ContentType;
+  activeTab: PromptTab;
+  values: Record<string, string>;
+  context: string;
 }
