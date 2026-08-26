@@ -69,9 +69,110 @@ Arahan tambahan: ${context}` : ''}
 Jika gambar produk belum diberikan, minta saya upload gambar dahulu. Selepas gambar diterima, terus lengkapkan maklumat produk dan hasilkan semua scene tanpa bertanya soalan tambahan.`;
 }
 
+function generateStandardImagePrompt(data: PromptFormData): string {
+  const color1 = data.values.hookColor1 ?? 'Putih';
+  const color2 = data.values.hookColor2 ?? 'Putih';
+
+  return `1. Hasilkan satu gambar ultra-realistic berdasarkan Scene.
+
+2. Pastikan gaya cinematic, natural skin texture dan realistic lighting.
+
+3. Lighting mesti sesuai dengan emosi scene.
+
+4. Camera angle mesti nampak seperti rakaman filem sebenar.
+
+5. Environment mesti nampak hidup dan real.
+
+6. Jangan masukkan sebarang tulisan, subtitle, watermark atau teks dalam gambar kecuali hook pada gambar 1 sahaja. Tulisan hook untuk baris pertama warna ${color1} dan untuk baris kedua warna ${color2}.
+
+Pastikan ikut kedudukan hook di bawah:
+
+Jarak dari atas:
+- 200 px dari bahagian atas gambar
+- Lebih kurang 15% daripada tinggi gambar
+
+Jarak kiri dan kanan:
+- Minimum 80 px dari tepi kiri dan kanan
+- Pastikan teks berada dalam kawasan tengah selebar lebih kurang 920 px
+
+Baris 1 ${color1}
+Font size: 90–110 px
+
+Baris 2 ${color2}
+Font size: 100–120 px
+
+Jarak antara baris: 15–25 px
+
+7. Pastikan produk, jika ada dalam scene tersebut, kelihatan realistik dan proportionate.
+
+8. Fokus kepada ekspresi muka dan emosi watak.
+
+Pastikan visual yang konsisten.
+
+Buatkan gambar size 9:16.`;
+}
+
+function generateStandardFlowPrompt(): string {
+  return `Gunakan overview dan skrip yang telah dipersetujui.
+
+Mulakan dengan SCENE 1 sahaja.
+
+Arahan penting:
+
+1. Hasilkan prompt untuk Google Flow AI.
+
+2. Semua description mesti dalam Bahasa English.
+
+3. Masukkan dialog watak sahaja dalam Bahasa Melayu.
+
+4. Tiada narration.
+
+5. Tiada subtitle.
+
+6. Watak bercakap secara direct kepada kamera.
+
+7. Skrip mesti cukup untuk 8 saat dengan natural pacing.
+
+8. Jangan masukkan penerangan tambahan di luar prompt.
+
+9. Jangan gunakan ayat seperti “Malay dialogue:” atau sebarang label dialog lain.
+
+10. Tulis prompt terus dalam format yang boleh di-copy dan paste ke Google Flow.
+
+11. Hook untuk gambar 1, pastikan hook muncul dari saat 0 hingga 3 saat sahaja. Jangan ubah warna hook.
+
+Struktur yang mesti ada dalam prompt:
+
+Scene environment description (English)
+
+Lighting and camera movement (English)
+
+Character action and facial expression (English)
+
+Then continue with the character speaking naturally in Bahasa Melayu
+
+Terus hasilkan prompt untuk SCENE 1 sekarang.
+
+Selepas itu, tunggu arahan saya.
+
+Apabila saya taip: NEXT
+
+Terus hasilkan prompt untuk scene seterusnya dengan gaya visual dan emosi yang konsisten.
+
+Pastikan produk 100 peratus sama dengan gambar yang saya bagi. Pastikan sama dari segi design, warna dan size. Jangan ubah apa-apa.`;
+}
+
 export function generatePrompt(data: PromptFormData): string {
   if (data.contentType === 'standard' && data.activeTab === 'Dialog') {
     return generateStandardDialogPrompt(data);
+  }
+
+  if (data.contentType === 'standard' && data.activeTab === 'Gambar') {
+    return generateStandardImagePrompt(data);
+  }
+
+  if (data.contentType === 'standard' && data.activeTab === 'Prompt Flow') {
+    return generateStandardFlowPrompt();
   }
 
   const config = contentTypes.find((item) => item.id === data.contentType) ?? contentTypes[0];

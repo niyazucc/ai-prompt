@@ -33,6 +33,8 @@ const contentIcons = {
   goyang: Images,
 };
 
+const hookColors = ['Putih', 'Kuning', 'Hitam', 'Merah', 'Hijau Neon'];
+
 interface PromptBuilderProps {
   userName: string;
   onLogout: () => Promise<void>;
@@ -45,6 +47,8 @@ export function PromptBuilder({ userName, onLogout }: PromptBuilderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const selectedType = contentTypes.find((item) => item.id === formData.contentType) ?? contentTypes[0];
+  const isStandardImage = formData.contentType === 'standard' && formData.activeTab === 'Gambar';
+  const isStandardFlow = formData.contentType === 'standard' && formData.activeTab === 'Prompt Flow';
 
   function handleCategoryChange(contentType: ContentType) {
     const config = contentTypes.find((item) => item.id === contentType) ?? contentTypes[0];
@@ -162,24 +166,50 @@ export function PromptBuilder({ userName, onLogout }: PromptBuilderProps) {
                 ))}
               </div>
 
-              <div className="dynamic-fields">
-                {selectedType.fields.map((field, index) => (
-                  <SelectField key={field.id} id={field.id} label={`${index + 1}. ${field.label}`} value={formData.values[field.id] ?? field.options[0]} options={field.options} onChange={(value) => updateValue(field.id, value)} />
-                ))}
-              </div>
+              {isStandardFlow ? (
+                <div className="flow-copy-card">
+                  <span className="flow-copy-icon"><Sparkles size={20} /></span>
+                  <h3>Prompt Flow</h3>
+                  <p>Satu klik untuk salin prompt Google Flow AI</p>
+                  <button className="generate-button" type="button" onClick={handleGenerate}>
+                    <Clipboard size={18} /> Auto Copy Prompt
+                  </button>
+                </div>
+              ) : isStandardImage ? (
+                <div className="image-prompt-options">
+                  <div className="subpanel-heading">
+                    <h3>Pilihan Prompt Gambar</h3>
+                    <p>Tetapkan warna hook untuk gambar pertama.</p>
+                  </div>
+                  <SelectField id="hook-color-1" label="1. Warna Hook — Baris 1" value={formData.values.hookColor1 ?? 'Putih'} options={hookColors} onChange={(value) => updateValue('hookColor1', value)} />
+                  <SelectField id="hook-color-2" label="2. Warna Hook — Baris 2" value={formData.values.hookColor2 ?? 'Putih'} options={hookColors} onChange={(value) => updateValue('hookColor2', value)} />
+                  <button className="generate-button" type="button" onClick={handleGenerate}>
+                    <Sparkles size={18} /> Generate & Auto Copy Prompt <ArrowRight size={18} />
+                  </button>
+                  <p className="privacy-note"><Check size={13} /> Prompt dijana secara terus dan disalin ke clipboard anda.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="dynamic-fields">
+                    {selectedType.fields.map((field, index) => (
+                      <SelectField key={field.id} id={field.id} label={`${index + 1}. ${field.label}`} value={formData.values[field.id] ?? field.options[0]} options={field.options} onChange={(value) => updateValue(field.id, value)} />
+                    ))}
+                  </div>
 
-              <div className="field">
-                <label htmlFor="context">Konteks tambahan <span>Pilihan</span></label>
-                <textarea id="context" value={formData.context} onChange={(event) => setFormData((current) => ({ ...current, context: event.target.value }))} placeholder="Nama produk, kelebihan, harga, promosi atau arahan tambahan..." rows={3} maxLength={700} />
-                <small className="character-count">{formData.context.length} / 700</small>
-              </div>
+                  <div className="field">
+                    <label htmlFor="context">Konteks tambahan <span>Pilihan</span></label>
+                    <textarea id="context" value={formData.context} onChange={(event) => setFormData((current) => ({ ...current, context: event.target.value }))} placeholder="Nama produk, kelebihan, harga, promosi atau arahan tambahan..." rows={3} maxLength={700} />
+                    <small className="character-count">{formData.context.length} / 700</small>
+                  </div>
 
-              <div className="info-note"><Info size={17} /><p>{selectedType.info}</p></div>
+                  <div className="info-note"><Info size={17} /><p>{selectedType.info}</p></div>
 
-              <button className="generate-button" type="button" onClick={handleGenerate}>
-                <Sparkles size={18} /> Generate & Auto Copy Prompt <ArrowRight size={18} />
-              </button>
-              <p className="privacy-note"><Check size={13} /> Prompt dijana secara terus dan disalin ke clipboard anda.</p>
+                  <button className="generate-button" type="button" onClick={handleGenerate}>
+                    <Sparkles size={18} /> Generate & Auto Copy Prompt <ArrowRight size={18} />
+                  </button>
+                  <p className="privacy-note"><Check size={13} /> Prompt dijana secara terus dan disalin ke clipboard anda.</p>
+                </>
+              )}
             </div>
           </div>
 

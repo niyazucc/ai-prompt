@@ -122,6 +122,16 @@ a { color: inherit; text-decoration: none; }
 .prompt-tabs button span { font-family: 'DM Mono', monospace; font-size: 9px; }
 .prompt-tabs button:hover { color: var(--cream); background: #141a20; }
 .prompt-tabs button.active { color: #111; background: var(--lime); }
+.subpanel-heading { margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid #273039; }
+.subpanel-heading h3 { margin: 0 0 6px; font-size: 17px; letter-spacing: -.4px; }
+.subpanel-heading p { margin: 0; color: #747c7e; font-size: 10px; }
+.image-prompt-options { max-width: 660px; margin: 0 auto; padding: 24px; border: 1px solid #29333d; border-radius: 5px; background: #101923; }
+.image-prompt-options .field { padding: 15px; border: 1px solid #25303b; border-radius: 4px; background: #0c141d; }
+.flow-copy-card { min-height: 270px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 28px; border: 1px solid #2b3742; border-radius: 6px; background: #101923; text-align: center; }
+.flow-copy-icon { width: 42px; height: 42px; display: grid; place-items: center; margin-bottom: 16px; border-radius: 50%; color: #111; background: var(--lime); }
+.flow-copy-card h3 { margin: 0 0 8px; font-size: 24px; letter-spacing: -1px; }
+.flow-copy-card > p { margin: 0 0 25px; color: #8b9498; font-size: 11px; }
+.flow-copy-card .generate-button { max-width: 505px; }
 .dynamic-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 18px; }
 .field { position: relative; margin-bottom: 22px; min-width: 0; }
 .field label { display: flex; justify-content: space-between; margin-bottom: 9px; font-size: 11px; font-weight: 700; }
@@ -212,6 +222,8 @@ footer { min-height: 100px; padding: 30px clamp(22px, 5vw, 78px); border-top: 1p
   .form-row { grid-template-columns: 1fr; gap: 0; }
   .dynamic-fields { grid-template-columns: 1fr; }
   .prompt-tabs button { gap: 5px; padding: 0 6px; font-size: 10px; }
+  .image-prompt-options { padding: 17px; }
+  .flow-copy-card { min-height: 230px; padding: 30px 18px; }
   .field { margin-bottom: 18px; }
   .field input, .field select { height: 50px; }
   .result-header { align-items: flex-start; flex-direction: column; gap: 18px; }
