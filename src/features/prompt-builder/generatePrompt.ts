@@ -69,6 +69,75 @@ Arahan tambahan: ${context}` : ''}
 Jika gambar produk belum diberikan, minta saya upload gambar dahulu. Selepas gambar diterima, terus lengkapkan maklumat produk dan hasilkan semua scene tanpa bertanya soalan tambahan.`;
 }
 
+function generatePodcastDialogPrompt(data: PromptFormData): string {
+  const value = (id: string) => data.values[id] ?? '[ISI]';
+  const context = data.context.trim();
+
+  return `Berdasarkan gambar yang telah di-upload, hasilkan skrip podcast yang kelihatan seperti perbualan sebenar.
+
+Maklumat Produk:
+[Kenal pasti secara auto berdasarkan gambar yang telah di-upload]
+
+Kelebihan Produk:
+[Kenal pasti secara auto berdasarkan gambar yang telah di-upload]
+
+Target Audience:
+[Kenal pasti secara auto berdasarkan gambar yang telah di-upload]
+
+Masalah Customer:
+[Kenal pasti secara auto berdasarkan gambar yang telah di-upload]
+
+Jumlah Scene:
+${value('scene')}
+
+Durasi:
+Setiap scene ${value('durasi')}.
+
+Watak:
+Hos Podcast: ${value('hos')}
+Tetamu: ${value('tetamu')}
+
+Lokasi:
+${value('lokasi')}
+
+Mood:
+${value('mood')}
+
+Peraturan:
+
+- Dialog sahaja.
+- Tiada narration.
+- Tiada subtitle.
+- Dialog natural seperti podcast sebenar.
+- Jangan terlalu menjual pada awal video.
+- Produk hanya disebut apabila sesuai.
+- CTA pada scene terakhir.
+- Setiap scene cukup untuk ${value('durasi')}.
+- Semua dialog dalam Bahasa Melayu.
+
+Output:
+
+SCENE 1
+Overview
+Dialog Hos
+Dialog Tetamu
+
+SCENE 2
+Overview
+Dialog Hos
+Dialog Tetamu
+
+SCENE 3
+Overview
+Dialog Hos
+Dialog Tetamu
+
+dan seterusnya sehingga lengkap berdasarkan jumlah scene yang dipilih.${context ? `
+
+Arahan tambahan:
+${context}` : ''}`;
+}
+
 function generateStandardImagePrompt(data: PromptFormData): string {
   const color1 = data.values.hookColor1 ?? 'Putih';
   const color2 = data.values.hookColor2 ?? 'Putih';
@@ -151,6 +220,86 @@ Jarak antara baris: 15–25 px
 7. Pastikan produk kekal 100 peratus sama seperti gambar asal dari segi design, warna, saiz, bentuk, label, logo dan pembungkusan.
 
 8. Fokus kepada ekspresi, pergerakan dan emosi watak animasi.
+
+Pastikan visual yang konsisten.
+
+Buatkan gambar size 9:16.`;
+}
+
+function generatePodcastImagePrompt(data: PromptFormData): string {
+  const color1 = data.values.hookColor1 ?? 'Putih';
+  const color2 = data.values.hookColor2 ?? 'Putih';
+
+  return `Gunakan skrip yang telah dihasilkan.
+
+Hasilkan gambar untuk setiap scene.
+
+Maklumat:
+
+Format:
+9:16 Portrait
+
+Style:
+Ultra realistic
+Cinematic
+Podcast Studio
+Professional Camera
+Realistic Lighting
+Natural Skin Texture
+Film Look
+
+Watak:
+Hos: ${data.values.hos ?? 'Hos Podcast'}
+Tetamu: ${data.values.tetamu ?? 'Tetamu Lelaki'}
+[Kekalkan watak sama sehingga habis]
+
+Pastikan:
+
+- Character muka sama.
+- Pakaian sama.
+- Studio sama.
+- Microphone sama.
+- Kamera sama.
+- Warna studio sama.
+- Tiada perubahan wajah.
+- Tiada perubahan umur.
+- Tiada watermark.
+- Tiada logo.
+- Tiada subtitle.
+- Tiada text.
+
+Background:
+${data.values.lokasi ?? 'Studio podcast moden'} dengan LED light.
+
+Output setiap scene:
+
+Scene Number
+
+Buatkan gambar scene 1 dahulu, kemudian apabila saya taip NEXT baru buat gambar untuk scene 2 dan seterusnya.
+
+1. Jangan masukkan sebarang tulisan, subtitle, watermark atau teks dalam gambar kecuali hook pada gambar 1 sahaja. Tulisan hook untuk baris pertama warna ${color1} dan untuk baris kedua warna ${color2}.
+
+Pastikan ikut kedudukan hook di bawah:
+
+Jarak dari atas:
+200 px dari bahagian atas gambar
+Lebih kurang 15% daripada tinggi gambar
+
+Jarak kiri dan kanan:
+Minimum 80 px dari tepi kiri dan kanan
+Pastikan teks berada dalam kawasan tengah selebar lebih kurang 920 px
+
+Baris 1 ${color1}
+Font size: 90–110 px
+
+Baris 2 ${color2}
+Font size: 100–120 px
+
+Jarak antara baris: 15–25 px
+
+2. Pastikan produk, jika ada dalam scene tersebut, kelihatan realistik dan proportionate.
+
+3. Fokus kepada ekspresi muka dan emosi watak.
 
 Pastikan visual yang konsisten.
 
@@ -284,7 +433,12 @@ export function generatePrompt(data: PromptFormData): string {
     return generateStandardDialogPrompt(data);
   }
 
+  if (data.contentType === 'podcast' && data.activeTab === 'Dialog') {
+    return generatePodcastDialogPrompt(data);
+  }
+
   if (data.activeTab === 'Gambar') {
+    if (data.contentType === 'podcast') return generatePodcastImagePrompt(data);
     if (data.contentType === 'animasi') return generateAnimationImagePrompt(data);
     if (data.contentType === 'goyang') return generateGoyangImagePrompt(data);
     return generateStandardImagePrompt(data);
