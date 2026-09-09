@@ -5,6 +5,10 @@ import { Eye, EyeOff, LoaderCircle, LockKeyhole, Mail, Sparkles } from 'lucide-r
 
 import { auth } from '../../../lib/firebase';
 
+interface LoginPageProps {
+  onSignUp: () => void;
+}
+
 function getLoginError(error: unknown): string {
   if (error instanceof FirebaseError) {
     if (error.code === 'auth/too-many-requests') return 'Terlalu banyak cubaan. Sila cuba semula sebentar lagi.';
@@ -13,7 +17,7 @@ function getLoginError(error: unknown): string {
   return 'E-mel atau kata laluan tidak sah.';
 }
 
-export function LoginPage() {
+export function LoginPage({ onSignUp }: LoginPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -81,9 +85,10 @@ export function LoginPage() {
             {isSubmitting ? 'Sedang log masuk...' : 'Log masuk'}
           </button>
           <button className="forgot-button" type="button" onClick={handlePasswordReset}>Lupa kata laluan?</button>
+          <button className="forgot-button signup-switch" type="button" onClick={onSignUp}>Belum ada akaun? Daftar dahulu</button>
         </form>
 
-        <p className="auth-footnote">Tiada pendaftaran awam. Hubungi admin untuk mendapatkan akaun.</p>
+        <p className="auth-footnote">Akses prompt akan terbuka selepas bayaran premium disahkan.</p>
       </section>
     </main>
   );
