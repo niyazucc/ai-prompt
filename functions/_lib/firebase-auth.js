@@ -31,13 +31,13 @@ export async function findFirebaseUserByEmail(env, accessToken, email) {
   return result.users?.[0] || null;
 }
 
-export async function ensureFirebaseUser(env, accessToken, { email, name }) {
+export async function ensureFirebaseUser(env, accessToken, { email, name, password }) {
   const existing = await findFirebaseUserByEmail(env, accessToken, email);
   if (existing?.localId) return { localId: existing.localId, created: false };
 
   const response = await adminAuthRequest(env, accessToken, 'accounts', {
     email,
-    password: randomPassword(),
+    password: password || randomPassword(),
     displayName: name,
     emailVerified: false,
   });

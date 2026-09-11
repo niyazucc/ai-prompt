@@ -8,6 +8,7 @@ const DIAL_CODE_FIELDS = ['client_phone_dial_code', 'phone_dial_code', 'dial_cod
 const PHONE_FIELDS = ['client_phone_number', 'phone', 'phone_number', 'buyer_phone', 'customer_phone'];
 const STATUS_FIELDS = ['status', 'payment_status', 'paymentStatus', 'transaction_status', 'status_bayaran'];
 const REFERENCE_FIELDS = ['uid', 'sale_id', 'reference', 'ref', 'order_id', 'orderId', 'invoice_no', 'transaction_id', 'trans_id', 'id'];
+const DEFAULT_PASSWORD_FIELD = 'extra_field_1';
 
 function firstValue(payload, fields) {
   for (const field of fields) {
@@ -35,6 +36,11 @@ export function isSuccessfulOnpayStatus(status) {
   // A missing status is allowed because this URL is assigned only to OnPay's
   // successful-sale ("Jualan Disahkan") activity.
   return !status || SUCCESS_STATUSES.has(status);
+}
+
+export function extractOnpayPassword(payload, configuredField = DEFAULT_PASSWORD_FIELD) {
+  const field = String(configuredField || DEFAULT_PASSWORD_FIELD).trim();
+  return typeof payload[field] === 'string' ? payload[field] : '';
 }
 
 export function isSuccessfulOnpayWebhook(payload, status) {

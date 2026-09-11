@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { pemToArrayBuffer, sha256Hex } from '../functions/_lib/firebase-rest.js';
-import { extractOnpayCustomer, isSuccessfulOnpayStatus, isSuccessfulOnpayWebhook } from '../functions/_lib/onpay.js';
+import { extractOnpayCustomer, extractOnpayPassword, isSuccessfulOnpayStatus, isSuccessfulOnpayWebhook } from '../functions/_lib/onpay.js';
 import { claimPendingPayment } from '../functions/api/claim-payment.js';
 import { parsePayload, registerPaidCustomer, storePaidCustomer } from '../functions/api/onpay-webhook.js';
 
@@ -86,6 +86,7 @@ function paidPayload(reference) {
     client_phone_number: '0123456789',
     sale_id: reference,
     status: 'paid',
+    extra_field_1: 'OnPayPass123!',
   };
 }
 
@@ -94,20 +95,24 @@ function firebaseUser(localId) {
 }
 
 test('extracts the fields used by the Promptly OnPay form', () => {
-  assert.deepEqual(extractOnpayCustomer({
+  const payload = {
     client_fullname: '  Nur Aisyah  ',
     client_email: '  Aisyah@Example.COM ',
     client_phone_dial_code: '60',
     client_phone_number: '012-345 6789',
     sale_id: 'SALE-42',
     status: 'SUCCESS',
-  }), {
+    extra_field_1: 'SecurePass123!',
+  };
+  assert.deepEqual(extractOnpayCustomer(payload), {
     email: 'aisyah@example.com',
     name: 'Nur Aisyah',
     phone: '+60123456789',
     reference: 'SALE-42',
     status: 'success',
   });
+  assert.equal(extractOnpayPassword(payload), 'SecurePass123!');
+  assert.equal(extractOnpayPassword({ extra_field_2: 'AnotherPass123!' }, 'extra_field_2'), 'AnotherPass123!');
 });
 
 test('accepts a missing status only for a success-only OnPay callback', () => {
@@ -189,7 +194,7 @@ test('the authenticated webhook path can create the paid Firestore user profile'
   assert.equal(user.fields.name.stringValue, 'Buyer Name');
 });
 
-test('a confirmed OnPay customer is registered, activated and sent password setup', async (context) => {
+test('a confirmed OnPay customer is registered with its submitted password', async (context) => {
   const firestore = new FirestoreMock();
   const originalFetch = globalThis.fetch;
   const identityRequests = [];
@@ -209,8 +214,22 @@ test('a confirmed OnPay customer is registered, activated and sent password setu
   );
 
   assert.equal(result.firebaseUser.localId, 'new-paid-user');
+  assert.equal(result.passwordSetupEmailSent, false);
   assert.equal(firestore.documents.get(`${documentsPath}/users/new-paid-user`).fields.hasPaid.booleanValue, true);
-  assert.equal(identityRequests.some((request) => request.url.includes('accounts:sendOobCode')), true);
+  assert.equal(identityRequests.find((request) => request.url.endsWith('/accounts?key=web-api-key')).body.password, 'OnPayPass123!');
+  assert.equal(identityRequests.some((request) => request.url.includes('accounts:sendOobCode')), false);
+  assert.equal(JSON.stringify([...firestore.documents.values()]).includes('OnPayPass123!'), false);
+});
+
+test('rejects an approved order when its configured password field is missing', async () => {
+  await assert.rejects(
+    registerPaidCustomer(
+      { ...env, FIREBASE_WEB_API_KEY: 'web-api-key', ONPAY_PASSWORD_FIELD: 'extra_field_2' },
+      'access-token',
+      paidPayload('SALE-MISSING-PASSWORD'),
+    ),
+    /password is missing or shorter than 6 characters/,
+  );
 });
 
 test('a claim retries when a newer payment replaces the pending record', async (context) => {

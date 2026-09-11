@@ -45,6 +45,25 @@ test('creates a Firebase user only after no account matches the paid email', asy
   assert.ok(requests[1].body.password.length >= 32);
 });
 
+test('uses a submitted OnPay password when creating a Firebase user', async (context) => {
+  const originalFetch = globalThis.fetch;
+  context.after(() => { globalThis.fetch = originalFetch; });
+  const requests = [];
+  globalThis.fetch = async (url, init) => {
+    requests.push({ url, body: JSON.parse(init.body) });
+    if (url.includes('accounts:lookup')) return Response.json({});
+    return Response.json({ localId: 'new-user' });
+  };
+
+  await ensureFirebaseUser(env, 'access-token', {
+    email: 'buyer@example.com',
+    name: 'Buyer Name',
+    password: 'OnPayPass123!',
+  });
+
+  assert.equal(requests[1].body.password, 'OnPayPass123!');
+});
+
 test('requests a password setup email for the paid account', async (context) => {
   const originalFetch = globalThis.fetch;
   context.after(() => { globalThis.fetch = originalFetch; });

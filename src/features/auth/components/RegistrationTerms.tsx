@@ -14,6 +14,7 @@ export function RegistrationTerms() {
           <ul>
             <li>Nama, alamat e-mel dan nombor telefon.</li>
             <li>Rujukan serta status bayaran OnPay.</li>
+            <li>Kata laluan akaun yang digunakan untuk mencipta kelayakan log masuk Firebase.</li>
           </ul>
 
           <h3>2. Tujuan Pengumpulan Data</h3>
@@ -21,14 +22,14 @@ export function RegistrationTerms() {
           <ul>
             <li>Pengesahan identiti dan keselamatan akaun semasa log masuk.</li>
             <li>Mencipta dan mengaktifkan akaun selepas bayaran disahkan.</li>
-            <li>Menghantar pautan selamat untuk menetapkan atau menukar kata laluan.</li>
+            <li>Menyediakan kata laluan log masuk yang dipilih dalam borang OnPay.</li>
             <li>Menguruskan pesanan dan akses kepada perkhidmatan.</li>
           </ul>
 
           <h3>3. Keselamatan Kata Laluan dan Maklumat</h3>
           <ul>
-            <li>Jangan masukkan kata laluan dalam borang OnPay. Anda akan menetapkannya terus melalui halaman keselamatan Firebase selepas bayaran diluluskan.</li>
-            <li>Kata laluan tidak dihantar kepada atau disimpan oleh sistem OnPay kami.</li>
+            <li>Kata laluan daripada borang OnPay dihantar ke Firebase Authentication selepas bayaran diluluskan.</li>
+            <li>Kata laluan tidak disimpan dalam pangkalan data Firestore atau log aplikasi kami.</li>
             <li>Kami melaksanakan langkah-langkah keselamatan teknikal dan organisasi untuk melindungi akaun anda daripada akses tanpa kebenaran, pencerobohan, atau kehilangan data.</li>
           </ul>
 

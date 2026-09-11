@@ -50,12 +50,16 @@ https://promptlytool.my/api/onpay-webhook
 ```
 
 The webhook extracts the order form's `client_fullname`, `client_email`,
-`client_phone_dial_code`, and `client_phone_number` fields. After validating the
+`client_phone_dial_code`, `client_phone_number`, and password fields. OnPay sends
+its three custom form values as `extra_field_1`, `extra_field_2`, and
+`extra_field_3`. Set the plain-text `ONPAY_PASSWORD_FIELD` Pages variable to the
+field used by the password input; it defaults to `extra_field_1`. After validating the
 shared secret and successful status, it creates or finds the Firebase Auth user,
 atomically enables `users/{uid}.hasPaid`, records the transaction in
-`onpayPayments`, and sends a Firebase password-reset message that serves as the
-customer's secure password-setup link. Passwords must never be collected in or
-sent by the OnPay form.
+`onpayPayments`, and assigns the submitted password only when creating a new
+Firebase Auth user. The password is never stored in Firestore or application
+logs. If an Auth user already exists, the webhook leaves its password unchanged
+and sends a Firebase password-reset email.
 
 The public app provides login and password reset only; it does not expose a
 registration form. `/api/claim-payment` remains available for accounts created

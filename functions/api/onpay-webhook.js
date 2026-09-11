@@ -8,7 +8,7 @@ import {
   sha256Hex,
 } from '../_lib/firebase-rest.js';
 import { ensureFirebaseUser, sendPasswordSetupEmail } from '../_lib/firebase-auth.js';
-import { extractOnpayCustomer, isSuccessfulOnpayWebhook } from '../_lib/onpay.js';
+import { extractOnpayCustomer, extractOnpayPassword, isSuccessfulOnpayWebhook } from '../_lib/onpay.js';
 import { claimPendingPayment } from './claim-payment.js';
 
 const MAX_BODY_BYTES = 64 * 1024;
@@ -108,19 +108,23 @@ export async function storePaidCustomer(env, accessToken, payload) {
 }
 
 export async function registerPaidCustomer(env, accessToken, payload) {
+  const password = extractOnpayPassword(payload, env.ONPAY_PASSWORD_FIELD);
+  if (password.length < 6) throw new Error('OnPay password is missing or shorter than 6 characters');
+
   const { alreadyClaimed } = await storePaidCustomer(env, accessToken, payload);
   if (alreadyClaimed) return { alreadyClaimed: true };
 
   const customer = extractOnpayCustomer(payload);
-  const firebaseUser = await ensureFirebaseUser(env, accessToken, customer);
-  await sendPasswordSetupEmail(env, customer.email);
+  const firebaseUser = await ensureFirebaseUser(env, accessToken, { ...customer, password });
+  const passwordSetupEmailSent = !firebaseUser.created;
+  if (passwordSetupEmailSent) await sendPasswordSetupEmail(env, customer.email);
   const claim = await claimPendingPayment(env, accessToken, {
     localId: firebaseUser.localId,
     email: customer.email,
     displayName: customer.name,
   }, { allowUserCreate: true });
   if (!claim.claimed) throw new Error(`Automatic payment claim failed (${claim.reason || 'unknown'})`);
-  return { alreadyClaimed: false, firebaseUser };
+  return { alreadyClaimed: false, firebaseUser, passwordSetupEmailSent };
 }
 
 export async function onRequest(context) {
@@ -151,7 +155,7 @@ export async function onRequest(context) {
     }
 
     const accessToken = await getGoogleAccessToken(env);
-    const { alreadyClaimed, firebaseUser } = await registerPaidCustomer(env, accessToken, payload);
+    const { alreadyClaimed, firebaseUser, passwordSetupEmailSent } = await registerPaidCustomer(env, accessToken, payload);
     if (alreadyClaimed) {
       console.info(JSON.stringify({ event: 'onpay_payment_already_claimed', requestId }));
       return json({ ok: true, recorded: true, registered: true, alreadyClaimed: true });
@@ -163,7 +167,7 @@ export async function onRequest(context) {
       uid: firebaseUser.localId,
       accountCreated: firebaseUser.created,
     }));
-    return json({ ok: true, recorded: true, registered: true, passwordSetupEmailSent: true });
+    return json({ ok: true, recorded: true, registered: true, passwordSetupEmailSent });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     const status = message === 'PAYLOAD_TOO_LARGE' ? 413 : 500;

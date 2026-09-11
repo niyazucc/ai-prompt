@@ -4,6 +4,7 @@
   "pages_build_output_dir": "./dist",
   "compatibility_date": "2026-09-11",
   "vars": {
-    "FIREBASE_WEB_API_KEY": "AIzaSyCrOU997v_O7e_y0SwEQjVEquqPjA6VBwI"
+    "FIREBASE_WEB_API_KEY": "AIzaSyCrOU997v_O7e_y0SwEQjVEquqPjA6VBwI",
+    "ONPAY_PASSWORD_FIELD": "extra_field_1"
   }
 }

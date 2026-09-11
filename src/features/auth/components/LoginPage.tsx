@@ -65,7 +65,7 @@ export function LoginPage() {
         <div className="auth-heading">
           <span>Portal ahli</span>
           <h1 id="login-title">Selamat kembali.</h1>
-          <p>Log masuk selepas bayaran OnPay anda disahkan dan anda telah menetapkan kata laluan melalui e-mel.</p>
+          <p>Selepas bayaran disahkan, log masuk menggunakan e-mel dan kata laluan yang anda masukkan dalam borang OnPay.</p>
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
