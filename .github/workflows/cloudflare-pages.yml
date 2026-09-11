@@ -1,0 +1,84 @@
+name: Deploy Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: cloudflare-pages-production
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  deploy:
+    name: Build and deploy
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+    steps:
+      - name: Check deployment credentials
+        run: test -n "$CLOUDFLARE_API_TOKEN"
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Use Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: d9bceccfca67fde6a7e256397923f903
+          command: pages deploy dist --project-name=sales-prompt-studio --branch=main
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Keep production domain on Cloudflare Pages
+        env:
+          CF_ZONE_ID: f709e66154db8764db0295b882e6dd76
+          CUSTOM_DOMAIN: promptlytool.my
+          PAGES_HOSTNAME: sales-prompt-studio.pages.dev
+        run: |
+          records="$(curl --fail-with-body --silent --show-error \
+            --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records?name=$CUSTOM_DOMAIN&per_page=100")"
+
+          if jq -e --arg target "$PAGES_HOSTNAME" \
+            '.result | length == 1 and .[0].type == "CNAME" and .[0].content == $target and .[0].proxied == true' \
+            <<<"$records" >/dev/null; then
+            echo "Production DNS already targets Cloudflare Pages."
+            exit 0
+          fi
+
+          deletes="$(jq '[.result[] | select(.type == "A" or .type == "AAAA" or .type == "CNAME") | {id}]' <<<"$records")"
+          payload="$(jq -n \
+            --argjson deletes "$deletes" \
+            --arg name "$CUSTOM_DOMAIN" \
+            --arg target "$PAGES_HOSTNAME" \
+            '{deletes: $deletes, posts: [{type: "CNAME", name: $name, content: $target, proxied: true, ttl: 1, comment: "Cloudflare Pages: sales-prompt-studio"}]}')"
+
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            --header "Content-Type: application/json" \
+            --data "$payload" \
+            "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records/batch" \
+            >/dev/null
