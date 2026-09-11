@@ -4,6 +4,7 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { AlertCircle, CreditCard, LoaderCircle, LogOut, Sparkles } from 'lucide-react';
 
 import { db } from '../../../lib/firebase';
+import { ONPAY_ORDER_URL } from '../config';
 
 interface ProtectedRouteProps {
   user: User;
@@ -19,7 +20,6 @@ export function ProtectedRoute({ user, children, onLogout }: ProtectedRouteProps
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
   const [error, setError] = useState('');
-  const paymentUrl = import.meta.env.VITE_ONPAY_PAYMENT_URL?.trim() || 'https://promptly.onpay.my/';
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -39,12 +39,7 @@ export function ProtectedRoute({ user, children, onLogout }: ProtectedRouteProps
 
   function handlePayment() {
     setError('');
-    if (!paymentUrl) {
-      setError('Pautan pembayaran OnPay belum ditetapkan. Hubungi admin.');
-      return;
-    }
-
-    window.open(paymentUrl, '_blank', 'noopener,noreferrer');
+    window.open(ONPAY_ORDER_URL, '_blank', 'noopener,noreferrer');
   }
 
   if (isProfileLoading) {

@@ -4,14 +4,12 @@ import { LoaderCircle, Sparkles } from 'lucide-react';
 
 import { LoginPage } from './features/auth/components/LoginPage';
 import { ProtectedRoute } from './features/auth/components/ProtectedRoute';
-import { SignUp } from './features/auth/components/SignUp';
 import { PromptBuilder } from './features/prompt-builder/components/PromptBuilder';
 import { auth } from './lib/firebase';
 
 export function App() {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
 
   useEffect(() => onAuthStateChanged(auth, (currentUser) => {
     setUser(currentUser);
@@ -28,11 +26,7 @@ export function App() {
     );
   }
 
-  if (!user) {
-    return authMode === 'signup'
-      ? <SignUp onLogin={() => setAuthMode('login')} />
-      : <LoginPage onSignUp={() => setAuthMode('signup')} />;
-  }
+  if (!user) return <LoginPage />;
 
   const userName = user.displayName?.trim() || user.email?.split('@')[0] || 'Pengguna';
   const handleLogout = () => signOut(auth);

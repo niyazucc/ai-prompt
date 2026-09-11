@@ -129,6 +129,16 @@ export async function handler(event) {
       ['email', 'emel', 'customer_email', 'buyer_email', 'pelanggan_email', 'customer_emel'],
       ['email', 'emel'],
     ).trim().toLowerCase();
+    const password = firstValue(
+      payload,
+      ['password', 'kata_laluan', 'customer_password', 'account_password'],
+      ['password', 'kata_laluan'],
+    );
+    const displayName = firstValue(
+      payload,
+      ['name', 'nama', 'customer_name', 'buyer_name', 'pelanggan_nama'],
+      ['customer_name', 'buyer_name', 'pelanggan_nama'],
+    );
     const rawStatus = firstValue(
       payload,
       ['status', 'sale_status', 'payment_status', 'order_status', 'status_jualan', 'activity', 'aktiviti', 'event'],
@@ -144,7 +154,7 @@ export async function handler(event) {
       return response(200, { message: 'Ignored non-success OnPay activity' });
     }
 
-    if (!email) {
+    if (!email || !email.includes('@')) {
       console.error('OnPay webhook has no recognizable email field. Fields:', Object.keys(payload));
       return response(200, { message: 'Webhook received, but customer email was not found' });
     }
@@ -155,17 +165,19 @@ export async function handler(event) {
       firebaseUser = await auth.getUserByEmail(email);
     } catch (error) {
       if (error?.code === 'auth/user-not-found') {
-        console.error('OnPay payment email does not match a Firebase user:', email);
-        await db.collection('onpayPayments').add({
+        if (password.length < 6) {
+          console.error('OnPay webhook cannot create the paid account because the password field is missing or too short. Fields:', Object.keys(payload));
+          return response(200, { message: 'Payment received, but account credentials were incomplete' });
+        }
+
+        firebaseUser = await auth.createUser({
           email,
-          matched: false,
-          reference: paymentReference(payload),
-          rawStatus,
-          receivedAt: FieldValue.serverTimestamp(),
+          password,
+          displayName: displayName || undefined,
+          emailVerified: false,
         });
-        return response(200, { message: 'Payment received, but no matching account was found' });
       }
-      throw error;
+      if (!firebaseUser) throw error;
     }
 
     const userRef = db.collection('users').doc(firebaseUser.uid);
@@ -177,6 +189,7 @@ export async function handler(event) {
     await db.runTransaction(async (transaction) => {
       transaction.set(userRef, {
         email,
+        name: displayName || firebaseUser.displayName || '',
         hasPaid: true,
         paidAt: FieldValue.serverTimestamp(),
         paymentProvider: 'onpay',

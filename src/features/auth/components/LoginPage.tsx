@@ -1,13 +1,11 @@
 import { useState, type FormEvent } from 'react';
 import { FirebaseError } from 'firebase/app';
 import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
-import { Eye, EyeOff, LoaderCircle, LockKeyhole, Mail, Sparkles } from 'lucide-react';
+import { CreditCard, Eye, EyeOff, LoaderCircle, LockKeyhole, Mail, Sparkles } from 'lucide-react';
 
 import { auth } from '../../../lib/firebase';
-
-interface LoginPageProps {
-  onSignUp: () => void;
-}
+import { ONPAY_ORDER_URL } from '../config';
+import { TermsModal } from './TermsModal';
 
 function getLoginError(error: unknown): string {
   if (error instanceof FirebaseError) {
@@ -17,12 +15,15 @@ function getLoginError(error: unknown): string {
   return 'E-mel atau kata laluan tidak sah.';
 }
 
-export function LoginPage({ onSignUp }: LoginPageProps) {
+export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [message, setMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
+  const hasReturnedFromPayment = new URLSearchParams(window.location.search).get('payment') === 'success';
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -64,6 +65,8 @@ export function LoginPage({ onSignUp }: LoginPageProps) {
           <p>Log masuk menggunakan akaun yang telah diluluskan untuk mengakses pembina prompt.</p>
         </div>
 
+        {hasReturnedFromPayment && <p className="auth-message success" role="status">Bayaran diterima. Akaun mungkin mengambil sedikit masa untuk diaktifkan. Sila cuba log masuk.</p>}
+
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="auth-field">
             <label htmlFor="login-email">Alamat e-mel</label>
@@ -78,18 +81,27 @@ export function LoginPage({ onSignUp }: LoginPageProps) {
             </div>
           </div>
 
+          <div className="terms-check">
+            <input id="accept-terms" type="checkbox" checked={hasAcceptedTerms} onChange={(event) => setHasAcceptedTerms(event.target.checked)} required />
+            <span><label htmlFor="accept-terms">Saya telah membaca dan bersetuju dengan </label><button type="button" onClick={() => setIsTermsOpen(true)}>Terma dan Syarat</button>.</span>
+          </div>
+
           {message && <p className={`auth-message ${message.type}`} role="status">{message.text}</p>}
 
-          <button className="auth-submit" type="submit" disabled={isSubmitting}>
+          <button className="auth-submit" type="submit" disabled={isSubmitting || !hasAcceptedTerms}>
             {isSubmitting ? <LoaderCircle className="spin" size={18} /> : <LockKeyhole size={17} />}
             {isSubmitting ? 'Sedang log masuk...' : 'Log masuk'}
           </button>
           <button className="forgot-button" type="button" onClick={handlePasswordReset}>Lupa kata laluan?</button>
-          <button className="forgot-button signup-switch" type="button" onClick={onSignUp}>Belum ada akaun? Daftar dahulu</button>
         </form>
 
-        <p className="auth-footnote">Akses prompt akan terbuka selepas bayaran premium disahkan.</p>
+        <div className="auth-register">
+          <span>Belum mempunyai akaun?</span>
+          <a href={ONPAY_ORDER_URL}><CreditCard size={15} /> Daftar &amp; bayar melalui OnPay</a>
+          <small>Akaun hanya dicipta selepas bayaran disahkan.</small>
+        </div>
       </section>
+      {isTermsOpen && <TermsModal onClose={() => setIsTermsOpen(false)} />}
     </main>
   );
 }
