@@ -111,6 +111,7 @@ export function PromptBuilder({ userName, onLogout }: PromptBuilderProps) {
           <a href="#builder" onClick={() => setIsMenuOpen(false)}><Menu size={14} /> Menu</a>
           <a href="#top" onClick={() => setIsMenuOpen(false)}><ArrowLeft size={14} /> Dashboard</a>
           <a href="#how-it-works" onClick={() => setIsMenuOpen(false)}><CircleHelp size={14} /> Panduan</a>
+          <button className="mobile-logout-button" type="button" onClick={() => { setIsMenuOpen(false); void onLogout(); }}><LogOut size={14} /> Log keluar</button>
         </nav>
         <div className="user-status"><span>Hi, {userName}</span><b>Premium Aktif</b></div>
         <button className="logout-button" type="button" onClick={() => void onLogout()}><LogOut size={14} /> Logout</button>
