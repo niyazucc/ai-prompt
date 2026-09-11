@@ -21,7 +21,8 @@ import {
 } from 'lucide-react';
 
 import { SelectField } from '../../../components/ui/SelectField';
-import { contentTypes, getInitialValues, initialFormData } from '../data';
+import { ThemeToggle } from '../../../components/ui/ThemeToggle';
+import { contentTypes, durationOptions, getInitialValues, initialFormData } from '../data';
 import { generatePrompt } from '../generatePrompt';
 import type { ContentType, PromptFormData, PromptTab } from '../types';
 
@@ -113,6 +114,7 @@ export function PromptBuilder({ userName, onLogout }: PromptBuilderProps) {
         </nav>
         <div className="user-status"><span>Hi, {userName}</span><b>Premium Aktif</b></div>
         <button className="logout-button" type="button" onClick={() => void onLogout()}><LogOut size={14} /> Logout</button>
+        <ThemeToggle />
         <button className="menu-button" type="button" onClick={() => setIsMenuOpen((value) => !value)} aria-expanded={isMenuOpen} aria-label="Buka atau tutup navigasi">
           {isMenuOpen ? <X /> : <Menu />}
         </button>
@@ -172,6 +174,7 @@ export function PromptBuilder({ userName, onLogout }: PromptBuilderProps) {
                   <span className="flow-copy-icon"><Sparkles size={20} /></span>
                   <h3>Prompt Flow</h3>
                   <p>Satu klik untuk salin prompt Google Flow AI</p>
+                  <SelectField id="flow-duration" label="Durasi setiap scene (maksimum 10 saat)" value={formData.values.durasi ?? '8 saat'} options={durationOptions} onChange={(value) => updateValue('durasi', value)} />
                   <button className="generate-button" type="button" onClick={handleGenerate}>
                     <Clipboard size={18} /> Auto Copy Prompt
                   </button>
@@ -180,7 +183,7 @@ export function PromptBuilder({ userName, onLogout }: PromptBuilderProps) {
                 <div className="image-prompt-options">
                   <div className="subpanel-heading">
                     <h3>Pilihan Prompt Gambar</h3>
-                    <p>Tetapkan warna hook untuk gambar pertama.</p>
+                    <p>{isGoyangImage ? 'Tetapkan warna hook untuk setiap gambar.' : 'Tetapkan warna hook untuk gambar pertama.'}</p>
                   </div>
                   {isGoyangImage ? (
                     <>

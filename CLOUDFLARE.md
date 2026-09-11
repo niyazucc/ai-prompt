@@ -42,7 +42,7 @@ remain available under the same domain at `/api/*`.
 
 ## OnPay paid access
 
-Customers may register before or after paying. Configure OnPay's successful-sale
+Customers create their account through the payment flow. Configure OnPay's successful-sale
 (`Jualan Disahkan`) callback to send a POST request to:
 
 ```text
@@ -51,14 +51,16 @@ https://promptlytool.my/api/onpay-webhook
 
 The webhook extracts the order form's `client_fullname`, `client_email`,
 `client_phone_dial_code`, and `client_phone_number` fields. After validating the
-shared secret and successful status, it records the customer in the protected
-`pendingOnpayCustomers` collection and the transaction in `onpayPayments`.
+shared secret and successful status, it creates or finds the Firebase Auth user,
+atomically enables `users/{uid}.hasPaid`, records the transaction in
+`onpayPayments`, and sends a Firebase password-reset message that serves as the
+customer's secure password-setup link. Passwords must never be collected in or
+sent by the OnPay form.
 
-When the customer registers with the same email, the app sends a Firebase email
-verification. `/api/claim-payment` validates the signed Firebase ID token and
-requires that verified email before atomically enabling `users/{uid}.hasPaid`,
-marking the payment claimed, and deleting the pending record. This prevents a
-different person from claiming a payment merely by knowing the buyer's email.
+The public app provides login and password reset only; it does not expose a
+registration form. `/api/claim-payment` remains available for accounts created
+under the earlier flow and validates a signed, email-verified Firebase ID token
+before claiming any pending payment.
 
 Required Pages secrets are `ONPAY_WEBHOOK_SECRET`, `FIREBASE_PROJECT_ID`,
 `FIREBASE_CLIENT_EMAIL`, and `FIREBASE_PRIVATE_KEY`. The public

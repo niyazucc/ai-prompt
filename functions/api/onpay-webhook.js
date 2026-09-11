@@ -7,7 +7,9 @@ import {
   secureEqual,
   sha256Hex,
 } from '../_lib/firebase-rest.js';
+import { ensureFirebaseUser, sendPasswordSetupEmail } from '../_lib/firebase-auth.js';
 import { extractOnpayCustomer, isSuccessfulOnpayWebhook } from '../_lib/onpay.js';
+import { claimPendingPayment } from './claim-payment.js';
 
 const MAX_BODY_BYTES = 64 * 1024;
 const MAX_WRITE_ATTEMPTS = 3;
@@ -105,6 +107,22 @@ export async function storePaidCustomer(env, accessToken, payload) {
   throw new Error('Firestore commit retries exhausted');
 }
 
+export async function registerPaidCustomer(env, accessToken, payload) {
+  const { alreadyClaimed } = await storePaidCustomer(env, accessToken, payload);
+  if (alreadyClaimed) return { alreadyClaimed: true };
+
+  const customer = extractOnpayCustomer(payload);
+  const firebaseUser = await ensureFirebaseUser(env, accessToken, customer);
+  await sendPasswordSetupEmail(env, customer.email);
+  const claim = await claimPendingPayment(env, accessToken, {
+    localId: firebaseUser.localId,
+    email: customer.email,
+    displayName: customer.name,
+  }, { allowUserCreate: true });
+  if (!claim.claimed) throw new Error(`Automatic payment claim failed (${claim.reason || 'unknown'})`);
+  return { alreadyClaimed: false, firebaseUser };
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
   const requestId = crypto.randomUUID();
@@ -121,7 +139,7 @@ export async function onRequest(context) {
       console.warn(JSON.stringify({ event: 'onpay_webhook_rejected', requestId }));
       return json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const requiredBindings = ['FIREBASE_PROJECT_ID', 'FIREBASE_CLIENT_EMAIL', 'FIREBASE_PRIVATE_KEY'];
+    const requiredBindings = ['FIREBASE_PROJECT_ID', 'FIREBASE_CLIENT_EMAIL', 'FIREBASE_PRIVATE_KEY', 'FIREBASE_WEB_API_KEY'];
     if (requiredBindings.some((key) => !env[key])) throw new Error('Firebase service account bindings are incomplete');
 
     const { email, reference, status } = extractOnpayCustomer(payload);
@@ -133,13 +151,19 @@ export async function onRequest(context) {
     }
 
     const accessToken = await getGoogleAccessToken(env);
-    const { alreadyClaimed } = await storePaidCustomer(env, accessToken, payload);
+    const { alreadyClaimed, firebaseUser } = await registerPaidCustomer(env, accessToken, payload);
     if (alreadyClaimed) {
       console.info(JSON.stringify({ event: 'onpay_payment_already_claimed', requestId }));
-      return json({ ok: true, recorded: true, alreadyClaimed: true });
+      return json({ ok: true, recorded: true, registered: true, alreadyClaimed: true });
     }
-    console.info(JSON.stringify({ event: 'onpay_paid_customer_recorded', requestId }));
-    return json({ ok: true, recorded: true, pendingRegistration: true });
+
+    console.info(JSON.stringify({
+      event: 'onpay_paid_user_registered',
+      requestId,
+      uid: firebaseUser.localId,
+      accountCreated: firebaseUser.created,
+    }));
+    return json({ ok: true, recorded: true, registered: true, passwordSetupEmailSent: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     const status = message === 'PAYLOAD_TOO_LARGE' ? 413 : 500;

@@ -1,0 +1,10 @@
+.theme-toggle { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--cream); font-size: 11px; font-weight: 700; }
+.theme-toggle:hover { border-color: var(--accent); background: var(--accent-soft); }
+.site-header .theme-toggle { margin-left: 16px; }
+.auth-page > .theme-toggle { position: absolute; top: 20px; right: 20px; z-index: 2; }
+@media (max-width: 680px) {
+  .site-header .theme-toggle { margin-left: auto; margin-right: 12px; }
+  .site-header .theme-toggle span { display: none; }
+  .site-header .theme-toggle { width: 40px; padding: 0; }
+  .site-header .menu-button { margin-left: 0; }
+}

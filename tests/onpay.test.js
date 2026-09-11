@@ -4,7 +4,7 @@ import test from 'node:test';
 import { pemToArrayBuffer, sha256Hex } from '../functions/_lib/firebase-rest.js';
 import { extractOnpayCustomer, isSuccessfulOnpayStatus, isSuccessfulOnpayWebhook } from '../functions/_lib/onpay.js';
 import { claimPendingPayment } from '../functions/api/claim-payment.js';
-import { parsePayload, storePaidCustomer } from '../functions/api/onpay-webhook.js';
+import { parsePayload, registerPaidCustomer, storePaidCustomer } from '../functions/api/onpay-webhook.js';
 
 const projectId = 'onpay-test';
 const documentsPath = `projects/${projectId}/databases/(default)/documents`;
@@ -165,6 +165,52 @@ test('a webhook retry cannot reopen a claimed payment for another account', asyn
     { claimed: false, reason: 'no_matching_payment' },
   );
   assert.equal(firestore.documents.get(`${documentsPath}/users/buyer-2`).fields.hasPaid.booleanValue, false);
+});
+
+test('the authenticated webhook path can create the paid Firestore user profile', async (context) => {
+  const firestore = new FirestoreMock();
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = firestore.fetch.bind(firestore);
+  context.after(() => { globalThis.fetch = originalFetch; });
+
+  await storePaidCustomer(env, 'access-token', paidPayload('SALE-NEW-USER'));
+  assert.deepEqual(
+    await claimPendingPayment(
+      env,
+      'access-token',
+      { localId: 'new-user', email: 'buyer@example.com', displayName: 'Buyer Name' },
+      { allowUserCreate: true },
+    ),
+    { claimed: true },
+  );
+
+  const user = firestore.documents.get(`${documentsPath}/users/new-user`);
+  assert.equal(user.fields.hasPaid.booleanValue, true);
+  assert.equal(user.fields.name.stringValue, 'Buyer Name');
+});
+
+test('a confirmed OnPay customer is registered, activated and sent password setup', async (context) => {
+  const firestore = new FirestoreMock();
+  const originalFetch = globalThis.fetch;
+  const identityRequests = [];
+  globalThis.fetch = async (url, init = {}) => {
+    if (url.includes('firestore.googleapis.com')) return firestore.fetch(url, init);
+    identityRequests.push({ url, body: JSON.parse(init.body) });
+    if (url.includes('accounts:lookup')) return Response.json({});
+    if (url.includes('accounts:sendOobCode')) return Response.json({ email: 'buyer@example.com' });
+    return Response.json({ localId: 'new-paid-user' });
+  };
+  context.after(() => { globalThis.fetch = originalFetch; });
+
+  const result = await registerPaidCustomer(
+    { ...env, FIREBASE_WEB_API_KEY: 'web-api-key' },
+    'access-token',
+    paidPayload('SALE-AUTOMATIC'),
+  );
+
+  assert.equal(result.firebaseUser.localId, 'new-paid-user');
+  assert.equal(firestore.documents.get(`${documentsPath}/users/new-paid-user`).fields.hasPaid.booleanValue, true);
+  assert.equal(identityRequests.some((request) => request.url.includes('accounts:sendOobCode')), true);
 });
 
 test('a claim retries when a newer payment replaces the pending record', async (context) => {

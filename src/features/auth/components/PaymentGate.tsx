@@ -4,6 +4,7 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { CreditCard, LoaderCircle, LogOut, MailCheck, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
 
 import { db } from '../../../lib/firebase';
+import { ThemeToggle } from '../../../components/ui/ThemeToggle';
 
 type PaymentGateProps = {
   user: User;
@@ -88,6 +89,7 @@ export function PaymentGate({ user, onLogout, children }: PaymentGateProps) {
 
   return (
     <main className="auth-page">
+      <ThemeToggle />
       <div className="auth-glow" aria-hidden="true" />
       <section className="auth-card payment-card" aria-labelledby="payment-title">
         <a className="brand auth-brand" href="/" aria-label="Prompt AI Convert Sale">

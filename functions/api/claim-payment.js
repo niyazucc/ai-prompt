@@ -14,7 +14,7 @@ function stringField(document, field) {
   return document.fields?.[field]?.stringValue || '';
 }
 
-export async function claimPendingPayment(env, accessToken, firebaseUser) {
+export async function claimPendingPayment(env, accessToken, firebaseUser, { allowUserCreate = false } = {}) {
   const email = firebaseUser.email.trim().toLowerCase();
   const pendingId = await sha256Hex(email);
   const documentsPath = projectDocumentsPath(env);
@@ -50,28 +50,34 @@ export async function claimPendingPayment(env, accessToken, firebaseUser) {
     }
 
     const claimedAt = new Date().toISOString();
+    const userFields = {
+      email: { stringValue: email },
+      hasPaid: { booleanValue: true },
+      paidAt: { timestampValue: claimedAt },
+      paymentProvider: { stringValue: 'onpay' },
+      paymentReference: { stringValue: reference },
+      onpayName: { stringValue: stringField(pending, 'name') },
+      phone: { stringValue: stringField(pending, 'phone') },
+    };
+    const userFieldPaths = ['email', 'hasPaid', 'paidAt', 'paymentProvider', 'paymentReference', 'onpayName', 'phone'];
+    if (allowUserCreate) {
+      userFields.name = { stringValue: firebaseUser.displayName || stringField(pending, 'name') };
+      userFieldPaths.push('name');
+    }
+    const userWrite = {
+      update: {
+        name: `${documentsPath}/users/${firebaseUser.localId}`,
+        fields: userFields,
+      },
+      updateMask: { fieldPaths: userFieldPaths },
+    };
+    if (!allowUserCreate) userWrite.currentDocument = { exists: true };
+
     const commitResponse = await firestoreRequest(env, accessToken, 'documents:commit', {
       method: 'POST',
       body: JSON.stringify({
         writes: [
-          {
-            update: {
-              name: `${documentsPath}/users/${firebaseUser.localId}`,
-              fields: {
-                email: { stringValue: email },
-                hasPaid: { booleanValue: true },
-                paidAt: { timestampValue: claimedAt },
-                paymentProvider: { stringValue: 'onpay' },
-                paymentReference: { stringValue: reference },
-                onpayName: { stringValue: stringField(pending, 'name') },
-                phone: { stringValue: stringField(pending, 'phone') },
-              },
-            },
-            updateMask: {
-              fieldPaths: ['email', 'hasPaid', 'paidAt', 'paymentProvider', 'paymentReference', 'onpayName', 'phone'],
-            },
-            currentDocument: { exists: true },
-          },
+          userWrite,
           {
             update: {
               name: payment.name,
