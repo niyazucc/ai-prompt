@@ -42,19 +42,40 @@ remain available under the same domain at `/api/*`.
 
 ## OnPay paid access
 
-New users register in the app before paying. The app creates an unpaid Firebase
-profile and keeps the prompt builder locked. Configure OnPay's successful-sale
+Customers may register before or after paying. Configure OnPay's successful-sale
 (`Jualan Disahkan`) callback to send a POST request to:
 
 ```text
 https://promptlytool.my/api/onpay-webhook?token=<ONPAY_WEBHOOK_SECRET>
 ```
 
-The payment email must match the registration email. The Function validates the
-shared secret and successful status, finds the Firebase profile, and updates its
-`hasPaid` field using the server-side Firebase service account. Required Pages
-secrets are `ONPAY_WEBHOOK_SECRET`, `FIREBASE_PROJECT_ID`,
-`FIREBASE_CLIENT_EMAIL`, and `FIREBASE_PRIVATE_KEY`.
+The webhook extracts the order form's `client_fullname`, `client_email`,
+`client_phone_dial_code`, and `client_phone_number` fields. After validating the
+shared secret and successful status, it records the customer in the protected
+`pendingOnpayCustomers` collection and the transaction in `onpayPayments`.
+
+When the customer registers with the same email, the app sends a Firebase email
+verification. `/api/claim-payment` validates the signed Firebase ID token and
+requires that verified email before atomically enabling `users/{uid}.hasPaid`,
+marking the payment claimed, and deleting the pending record. This prevents a
+different person from claiming a payment merely by knowing the buyer's email.
+
+Required Pages secrets are `ONPAY_WEBHOOK_SECRET`, `FIREBASE_PROJECT_ID`,
+`FIREBASE_CLIENT_EMAIL`, and `FIREBASE_PRIVATE_KEY`. The public
+`FIREBASE_WEB_API_KEY` binding is declared in `wrangler.jsonc`.
+
+`ONPAY_WEBHOOK_SECRET` is an application-owned shared secret; OnPay does not
+issue it. Generate a random value locally:
+
+```powershell
+node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
+```
+
+Store that value as an encrypted `ONPAY_WEBHOOK_SECRET` in the Cloudflare Pages
+project's Variables and Secrets settings, then use the same value for the
+`token` in the OnPay callback URL above. Saved Cloudflare secrets cannot be
+viewed later; replace the secret and callback URL together if it is lost. For
+local Pages development, put the same binding in the ignored `.dev.vars` file.
 
 The checked-in `firestore.rules` mirrors the production rules: users can read
 their own profile and create it only with `hasPaid: false`; browser clients

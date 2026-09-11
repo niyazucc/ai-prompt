@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { FirebaseError } from 'firebase/app';
-import { createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { Eye, EyeOff, LoaderCircle, LockKeyhole, Mail, Sparkles, UserRound } from 'lucide-react';
 
@@ -41,6 +41,7 @@ export function LoginPage() {
           hasPaid: false,
           createdAt: serverTimestamp(),
         }, { merge: true });
+        await sendEmailVerification(credential.user);
       } else {
         await signInWithEmailAndPassword(auth, normalizedEmail, password);
       }
@@ -75,7 +76,7 @@ export function LoginPage() {
         <div className="auth-heading">
           <span>{mode === 'login' ? 'Portal ahli' : 'Daftar akaun'}</span>
           <h1 id="login-title">{mode === 'login' ? 'Selamat kembali.' : 'Mulakan akses.'}</h1>
-          <p>{mode === 'login' ? 'Log masuk menggunakan akaun anda. Akses hanya dibuka selepas bayaran disahkan.' : 'Daftar dahulu, kemudian buat bayaran OnPay menggunakan e-mel yang sama.'}</p>
+          <p>{mode === 'login' ? 'Log masuk menggunakan akaun anda. Akses hanya dibuka selepas bayaran disahkan.' : 'Sudah bayar atau belum, daftar menggunakan e-mel yang sama seperti borang OnPay.'}</p>
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
