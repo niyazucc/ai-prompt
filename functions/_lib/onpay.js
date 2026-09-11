@@ -7,7 +7,7 @@ const NAME_FIELDS = ['client_fullname', 'fullname', 'full_name', 'name', 'buyer_
 const DIAL_CODE_FIELDS = ['client_phone_dial_code', 'phone_dial_code', 'dial_code'];
 const PHONE_FIELDS = ['client_phone_number', 'phone', 'phone_number', 'buyer_phone', 'customer_phone'];
 const STATUS_FIELDS = ['status', 'payment_status', 'paymentStatus', 'transaction_status', 'status_bayaran'];
-const REFERENCE_FIELDS = ['reference', 'ref', 'order_id', 'orderId', 'invoice_no', 'transaction_id', 'trans_id', 'sale_id'];
+const REFERENCE_FIELDS = ['uid', 'sale_id', 'reference', 'ref', 'order_id', 'orderId', 'invoice_no', 'transaction_id', 'trans_id', 'id'];
 
 function firstValue(payload, fields) {
   for (const field of fields) {
@@ -35,4 +35,9 @@ export function isSuccessfulOnpayStatus(status) {
   // A missing status is allowed because this URL is assigned only to OnPay's
   // successful-sale ("Jualan Disahkan") activity.
   return !status || SUCCESS_STATUSES.has(status);
+}
+
+export function isSuccessfulOnpayWebhook(payload, status) {
+  const eventType = String(payload.event_type || '').trim().toLowerCase();
+  return eventType ? eventType === 'sale.confirmed' : isSuccessfulOnpayStatus(status);
 }

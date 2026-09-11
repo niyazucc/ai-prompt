@@ -46,7 +46,7 @@ Customers may register before or after paying. Configure OnPay's successful-sale
 (`Jualan Disahkan`) callback to send a POST request to:
 
 ```text
-https://promptlytool.my/api/onpay-webhook?token=<ONPAY_WEBHOOK_SECRET>
+https://promptlytool.my/api/onpay-webhook
 ```
 
 The webhook extracts the order form's `client_fullname`, `client_email`,
@@ -64,18 +64,12 @@ Required Pages secrets are `ONPAY_WEBHOOK_SECRET`, `FIREBASE_PROJECT_ID`,
 `FIREBASE_CLIENT_EMAIL`, and `FIREBASE_PRIVATE_KEY`. The public
 `FIREBASE_WEB_API_KEY` binding is declared in `wrangler.jsonc`.
 
-`ONPAY_WEBHOOK_SECRET` is an application-owned shared secret; OnPay does not
-issue it. Generate a random value locally:
-
-```powershell
-node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
-```
-
-Store that value as an encrypted `ONPAY_WEBHOOK_SECRET` in the Cloudflare Pages
-project's Variables and Secrets settings, then use the same value for the
-`token` in the OnPay callback URL above. Saved Cloudflare secrets cannot be
-viewed later; replace the secret and callback URL together if it is lost. For
-local Pages development, put the same binding in the ignored `.dev.vars` file.
+OnPay issues the webhook token under **Tetapan > Sistem > API & Webhook** and
+sends it in the JSON request body. Store that token as an encrypted
+`ONPAY_WEBHOOK_SECRET` in the Cloudflare Pages project's Variables and Secrets
+settings. Saved Cloudflare secrets cannot be viewed later; generate a new OnPay
+webhook token and replace the Cloudflare secret if it is lost. For local Pages
+development, put the same binding in the ignored `.env` or `.dev.vars` file.
 
 The checked-in `firestore.rules` mirrors the production rules: users can read
 their own profile and create it only with `hasPaid: false`; browser clients

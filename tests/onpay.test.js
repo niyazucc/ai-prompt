@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { sha256Hex } from '../functions/_lib/firebase-rest.js';
-import { extractOnpayCustomer, isSuccessfulOnpayStatus } from '../functions/_lib/onpay.js';
+import { extractOnpayCustomer, isSuccessfulOnpayStatus, isSuccessfulOnpayWebhook } from '../functions/_lib/onpay.js';
 import { claimPendingPayment } from '../functions/api/claim-payment.js';
-import { storePaidCustomer } from '../functions/api/onpay-webhook.js';
+import { parsePayload, storePaidCustomer } from '../functions/api/onpay-webhook.js';
 
 const projectId = 'onpay-test';
 const documentsPath = `projects/${projectId}/databases/(default)/documents`;
@@ -110,6 +110,34 @@ test('accepts a missing status only for a success-only OnPay callback', () => {
   assert.equal(isSuccessfulOnpayStatus('jualan_disahkan'), true);
   assert.equal(isSuccessfulOnpayStatus('pending'), false);
   assert.equal(isSuccessfulOnpayStatus('failed'), false);
+});
+
+test('accepts OnPay sale.confirmed JSON and uses the sale uid as its reference', async () => {
+  const request = new Request('https://example.com/api/onpay-webhook', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      token: 'onpay-webhook-token',
+      event_type: 'sale.confirmed',
+      sale: {
+        id: 5,
+        uid: '156xEnQ2OJ',
+        client_fullname: 'Niyaz',
+        client_email: 'yoonjae9211@gmail.com',
+        status: 0,
+      },
+    }),
+  });
+  const payload = await parsePayload(request);
+
+  assert.equal(payload.token, 'onpay-webhook-token');
+  assert.equal(isSuccessfulOnpayWebhook(payload, payload.status), true);
+  assert.equal(extractOnpayCustomer(payload).reference, '156xEnQ2OJ');
+});
+
+test('rejects webhook events other than sale.confirmed', () => {
+  assert.equal(isSuccessfulOnpayWebhook({ event_type: 'sale.created' }, ''), false);
+  assert.equal(isSuccessfulOnpayWebhook({ event_type: 'sale.canceled' }, ''), false);
 });
 
 test('a webhook retry cannot reopen a claimed payment for another account', async (context) => {

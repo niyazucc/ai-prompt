@@ -7,7 +7,7 @@ import {
   secureEqual,
   sha256Hex,
 } from '../_lib/firebase-rest.js';
-import { extractOnpayCustomer, isSuccessfulOnpayStatus } from '../_lib/onpay.js';
+import { extractOnpayCustomer, isSuccessfulOnpayWebhook } from '../_lib/onpay.js';
 
 const MAX_BODY_BYTES = 64 * 1024;
 const MAX_WRITE_ATTEMPTS = 3;
@@ -25,7 +25,7 @@ function flatten(input, output = {}) {
   return output;
 }
 
-async function parsePayload(request) {
+export async function parsePayload(request) {
   const contentLength = Number(request.headers.get('content-length') || 0);
   if (contentLength > MAX_BODY_BYTES) throw new Error('PAYLOAD_TOO_LARGE');
   const contentType = request.headers.get('content-type') || '';
@@ -112,7 +112,11 @@ export async function onRequest(context) {
   if (request.method !== 'POST') return json({ error: 'Method not allowed' }, { status: 405, headers: { allow: 'GET, POST' } });
 
   try {
-    const suppliedSecret = new URL(request.url).searchParams.get('token') || request.headers.get('x-onpay-webhook-secret') || '';
+    const payload = await parsePayload(request);
+    const suppliedSecret = payload.token
+      || request.headers.get('x-onpay-webhook-secret')
+      || new URL(request.url).searchParams.get('token')
+      || '';
     if (!env.ONPAY_WEBHOOK_SECRET || !suppliedSecret || !(await secureEqual(suppliedSecret, env.ONPAY_WEBHOOK_SECRET))) {
       console.warn(JSON.stringify({ event: 'onpay_webhook_rejected', requestId }));
       return json({ error: 'Unauthorized' }, { status: 401 });
@@ -120,12 +124,11 @@ export async function onRequest(context) {
     const requiredBindings = ['FIREBASE_PROJECT_ID', 'FIREBASE_CLIENT_EMAIL', 'FIREBASE_PRIVATE_KEY'];
     if (requiredBindings.some((key) => !env[key])) throw new Error('Firebase service account bindings are incomplete');
 
-    const payload = await parsePayload(request);
     const { email, reference, status } = extractOnpayCustomer(payload);
     if (!email || !email.includes('@')) return json({ error: 'A valid customer email is required' }, { status: 400 });
     if (!reference) return json({ error: 'A payment reference is required' }, { status: 400 });
-    if (!isSuccessfulOnpayStatus(status)) {
-      console.info(JSON.stringify({ event: 'onpay_payment_ignored', requestId, status }));
+    if (!isSuccessfulOnpayWebhook(payload, status)) {
+      console.info(JSON.stringify({ event: 'onpay_payment_ignored', requestId, eventType: payload.event_type || '', status }));
       return json({ ok: true, recorded: false, reason: 'payment_not_confirmed' });
     }
 
