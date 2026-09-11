@@ -9,6 +9,7 @@
     "cf:dev": "npm run build && wrangler pages dev",
     "deploy": "npm run build && wrangler pages deploy",
     "lint": "eslint .",
+    "test": "node --test tests/*.test.js",
     "preview": "vite preview"
   },
   "dependencies": {
