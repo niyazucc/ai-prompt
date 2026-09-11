@@ -5,11 +5,15 @@ function base64Url(value) {
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
 }
 
-function pemToArrayBuffer(pem) {
-  const normalized = pem.replace(/\\n/g, '\n');
+export function pemToArrayBuffer(pem) {
+  const normalized = pem.trim().replace(/\\n/g, '\n');
+  const beginMarker = '-----BEGIN PRIVATE KEY-----';
+  const endMarker = '-----END PRIVATE KEY-----';
+  const beginIndex = normalized.indexOf(beginMarker);
+  const endIndex = normalized.indexOf(endMarker, beginIndex + beginMarker.length);
+  if (beginIndex === -1 || endIndex === -1) throw new Error('Firebase private key is not valid PEM');
   const base64 = normalized
-    .replace('-----BEGIN PRIVATE KEY-----', '')
-    .replace('-----END PRIVATE KEY-----', '')
+    .slice(beginIndex + beginMarker.length, endIndex)
     .replace(/\s/g, '');
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);

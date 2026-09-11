@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { sha256Hex } from '../functions/_lib/firebase-rest.js';
+import { pemToArrayBuffer, sha256Hex } from '../functions/_lib/firebase-rest.js';
 import { extractOnpayCustomer, isSuccessfulOnpayStatus, isSuccessfulOnpayWebhook } from '../functions/_lib/onpay.js';
 import { claimPendingPayment } from '../functions/api/claim-payment.js';
 import { parsePayload, storePaidCustomer } from '../functions/api/onpay-webhook.js';
@@ -9,6 +9,11 @@ import { parsePayload, storePaidCustomer } from '../functions/api/onpay-webhook.
 const projectId = 'onpay-test';
 const documentsPath = `projects/${projectId}/databases/(default)/documents`;
 const env = { FIREBASE_PROJECT_ID: projectId };
+
+test('decodes a Firebase private key pasted with surrounding configuration text', () => {
+  const pasted = 'FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\\nAQID\\n-----END PRIVATE KEY-----\\n"';
+  assert.deepEqual([...new Uint8Array(pemToArrayBuffer(pasted))], [1, 2, 3]);
+});
 
 class FirestoreMock {
   constructor() {
