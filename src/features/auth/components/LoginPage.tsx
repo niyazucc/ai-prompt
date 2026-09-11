@@ -52,7 +52,7 @@ export function LoginPage() {
       <section className="auth-card" aria-labelledby="login-title">
         <a className="brand auth-brand" href="/" aria-label="Prompt AI Convert Sale">
           <span className="brand-mark"><Sparkles size={18} /></span>
-          <span>Prompt AI<span className="brand-dot">.</span></span>
+          <span>Prompt Kocak<span className="brand-dot">.</span></span>
         </a>
         <div className="auth-heading">
           <span>Portal ahli</span>
