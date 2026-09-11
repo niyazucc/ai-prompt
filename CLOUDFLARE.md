@@ -40,6 +40,26 @@ apex DNS record pointed at the production Pages project.
 Production is served from `https://promptlytool.my`; Cloudflare Pages Functions
 remain available under the same domain at `/api/*`.
 
+## OnPay paid access
+
+New users register in the app before paying. The app creates an unpaid Firebase
+profile and keeps the prompt builder locked. Configure OnPay's successful-sale
+(`Jualan Disahkan`) callback to send a POST request to:
+
+```text
+https://promptlytool.my/api/onpay-webhook?token=<ONPAY_WEBHOOK_SECRET>
+```
+
+The payment email must match the registration email. The Function validates the
+shared secret and successful status, finds the Firebase profile, and updates its
+`hasPaid` field using the server-side Firebase service account. Required Pages
+secrets are `ONPAY_WEBHOOK_SECRET`, `FIREBASE_PROJECT_ID`,
+`FIREBASE_CLIENT_EMAIL`, and `FIREBASE_PRIVATE_KEY`.
+
+The checked-in `firestore.rules` mirrors the production rules: users can read
+their own profile and create it only with `hasPaid: false`; browser clients
+cannot grant themselves paid access.
+
 Example:
 
 ```js
