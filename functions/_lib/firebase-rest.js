@@ -97,6 +97,13 @@ export async function firestoreRequest(env, accessToken, path, init = {}) {
   );
 }
 
+export async function isFirestorePreconditionFailure(response) {
+  if (response.status === 409) return true;
+  if (response.status !== 400) return false;
+  const result = await response.clone().json().catch(() => null);
+  return result?.error?.status === 'ABORTED' || result?.error?.status === 'FAILED_PRECONDITION';
+}
+
 export async function verifyFirebaseIdToken(env, idToken) {
   const response = await fetch(
     `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(env.FIREBASE_WEB_API_KEY)}`,

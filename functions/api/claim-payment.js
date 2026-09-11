@@ -1,15 +1,102 @@
 import {
   firestoreRequest,
   getGoogleAccessToken,
+  isFirestorePreconditionFailure,
   json,
   projectDocumentsPath,
-  safeDocumentId,
   sha256Hex,
   verifyFirebaseIdToken,
 } from '../_lib/firebase-rest.js';
 
+const MAX_CLAIM_ATTEMPTS = 3;
+
 function stringField(document, field) {
   return document.fields?.[field]?.stringValue || '';
+}
+
+export async function claimPendingPayment(env, accessToken, firebaseUser) {
+  const email = firebaseUser.email.trim().toLowerCase();
+  const pendingId = await sha256Hex(email);
+  const documentsPath = projectDocumentsPath(env);
+
+  for (let attempt = 0; attempt < MAX_CLAIM_ATTEMPTS; attempt += 1) {
+    const pendingResponse = await firestoreRequest(
+      env,
+      accessToken,
+      `documents/pendingOnpayCustomers/${pendingId}`,
+      { method: 'GET' },
+    );
+    if (pendingResponse.status === 404) return { claimed: false, reason: 'no_matching_payment' };
+    if (!pendingResponse.ok) throw new Error(`Pending payment lookup failed (${pendingResponse.status})`);
+
+    const pending = await pendingResponse.json();
+    if (!pending.updateTime || stringField(pending, 'email').toLowerCase() !== email || pending.fields?.hasPaid?.booleanValue !== true) {
+      throw new Error('Pending payment record is invalid');
+    }
+
+    const reference = stringField(pending, 'reference');
+    if (!reference) throw new Error('Pending payment reference is missing');
+    const paymentId = await sha256Hex(reference);
+    const paymentResponse = await firestoreRequest(env, accessToken, `documents/onpayPayments/${paymentId}`, { method: 'GET' });
+    if (!paymentResponse.ok) throw new Error(`Payment lookup failed (${paymentResponse.status})`);
+    const payment = await paymentResponse.json();
+    if (
+      !payment.updateTime
+      || stringField(payment, 'email').toLowerCase() !== email
+      || stringField(payment, 'reference') !== reference
+      || stringField(payment, 'claimStatus') !== 'pending_registration'
+    ) {
+      throw new Error('Payment record is invalid or already claimed');
+    }
+
+    const claimedAt = new Date().toISOString();
+    const commitResponse = await firestoreRequest(env, accessToken, 'documents:commit', {
+      method: 'POST',
+      body: JSON.stringify({
+        writes: [
+          {
+            update: {
+              name: `${documentsPath}/users/${firebaseUser.localId}`,
+              fields: {
+                email: { stringValue: email },
+                hasPaid: { booleanValue: true },
+                paidAt: { timestampValue: claimedAt },
+                paymentProvider: { stringValue: 'onpay' },
+                paymentReference: { stringValue: reference },
+                onpayName: { stringValue: stringField(pending, 'name') },
+                phone: { stringValue: stringField(pending, 'phone') },
+              },
+            },
+            updateMask: {
+              fieldPaths: ['email', 'hasPaid', 'paidAt', 'paymentProvider', 'paymentReference', 'onpayName', 'phone'],
+            },
+            currentDocument: { exists: true },
+          },
+          {
+            update: {
+              name: payment.name,
+              fields: {
+                claimStatus: { stringValue: 'claimed' },
+                claimedAt: { timestampValue: claimedAt },
+                claimedUid: { stringValue: firebaseUser.localId },
+              },
+            },
+            updateMask: { fieldPaths: ['claimStatus', 'claimedAt', 'claimedUid'] },
+            currentDocument: { updateTime: payment.updateTime },
+          },
+          {
+            delete: pending.name,
+            currentDocument: { updateTime: pending.updateTime },
+          },
+        ],
+      }),
+    });
+    if (commitResponse.ok) return { claimed: true };
+    if (attempt < MAX_CLAIM_ATTEMPTS - 1 && await isFirestorePreconditionFailure(commitResponse)) continue;
+    throw new Error(`Payment claim failed (${commitResponse.status})`);
+  }
+
+  throw new Error('Payment claim retries exhausted');
 }
 
 export async function onRequestPost(context) {
@@ -36,71 +123,13 @@ export async function onRequestPost(context) {
       return json({ claimed: false, reason: 'email_not_verified' }, { status: 403 });
     }
 
-    const email = firebaseUser.email.trim().toLowerCase();
-    const pendingId = await sha256Hex(email);
     const accessToken = await getGoogleAccessToken(env);
-    const pendingResponse = await firestoreRequest(
-      env,
-      accessToken,
-      `documents/pendingOnpayCustomers/${pendingId}`,
-      { method: 'GET' },
-    );
-    if (pendingResponse.status === 404) return json({ claimed: false, reason: 'no_matching_payment' });
-    if (!pendingResponse.ok) throw new Error(`Pending payment lookup failed (${pendingResponse.status})`);
+    const result = await claimPendingPayment(env, accessToken, firebaseUser);
 
-    const pending = await pendingResponse.json();
-    if (stringField(pending, 'email').toLowerCase() !== email || pending.fields?.hasPaid?.booleanValue !== true) {
-      throw new Error('Pending payment record is invalid');
+    if (result.claimed) {
+      console.info(JSON.stringify({ event: 'onpay_payment_claimed', requestId, uid: firebaseUser.localId }));
     }
-
-    const documentsPath = projectDocumentsPath(env);
-    const reference = stringField(pending, 'reference');
-    const paymentId = safeDocumentId(reference);
-    const claimedAt = new Date().toISOString();
-    const commitResponse = await firestoreRequest(env, accessToken, 'documents:commit', {
-      method: 'POST',
-      body: JSON.stringify({
-        writes: [
-          {
-            update: {
-              name: `${documentsPath}/users/${firebaseUser.localId}`,
-              fields: {
-                email: { stringValue: email },
-                hasPaid: { booleanValue: true },
-                paidAt: { timestampValue: claimedAt },
-                paymentProvider: { stringValue: 'onpay' },
-                paymentReference: { stringValue: reference },
-                onpayName: { stringValue: stringField(pending, 'name') },
-                phone: { stringValue: stringField(pending, 'phone') },
-              },
-            },
-            updateMask: {
-              fieldPaths: ['email', 'hasPaid', 'paidAt', 'paymentProvider', 'paymentReference', 'onpayName', 'phone'],
-            },
-            currentDocument: { exists: true },
-          },
-          {
-            update: {
-              name: `${documentsPath}/onpayPayments/${paymentId}`,
-              fields: {
-                claimStatus: { stringValue: 'claimed' },
-                claimedAt: { timestampValue: claimedAt },
-                claimedUid: { stringValue: firebaseUser.localId },
-              },
-            },
-            updateMask: { fieldPaths: ['claimStatus', 'claimedAt', 'claimedUid'] },
-          },
-          {
-            delete: pending.name,
-            currentDocument: { exists: true },
-          },
-        ],
-      }),
-    });
-    if (!commitResponse.ok) throw new Error(`Payment claim failed (${commitResponse.status})`);
-
-    console.info(JSON.stringify({ event: 'onpay_payment_claimed', requestId, uid: firebaseUser.localId }));
-    return json({ claimed: true });
+    return json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error(JSON.stringify({ event: 'onpay_claim_error', requestId, message }));

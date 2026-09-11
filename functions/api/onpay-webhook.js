@@ -1,15 +1,20 @@
 import {
   firestoreRequest,
   getGoogleAccessToken,
+  isFirestorePreconditionFailure,
   json,
   projectDocumentsPath,
-  safeDocumentId,
   secureEqual,
   sha256Hex,
 } from '../_lib/firebase-rest.js';
 import { extractOnpayCustomer, isSuccessfulOnpayStatus } from '../_lib/onpay.js';
 
 const MAX_BODY_BYTES = 64 * 1024;
+const MAX_WRITE_ATTEMPTS = 3;
+
+function stringField(document, field) {
+  return document.fields?.[field]?.stringValue || '';
+}
 
 function flatten(input, output = {}) {
   if (!input || typeof input !== 'object') return output;
@@ -31,52 +36,73 @@ async function parsePayload(request) {
   return flatten(Object.fromEntries(new URLSearchParams(body)));
 }
 
-async function storePaidCustomer(env, accessToken, payload) {
+export async function storePaidCustomer(env, accessToken, payload) {
   const { email, name, phone, reference, status: suppliedStatus } = extractOnpayCustomer(payload);
   const status = suppliedStatus || 'jualan_disahkan';
-  const receivedAt = new Date().toISOString();
   const documentsPath = projectDocumentsPath(env);
   const pendingId = await sha256Hex(email);
-  const paymentId = safeDocumentId(reference);
+  const paymentId = await sha256Hex(reference);
+  const paymentName = `${documentsPath}/onpayPayments/${paymentId}`;
 
-  const response = await firestoreRequest(env, accessToken, 'documents:commit', {
-    method: 'POST',
-    body: JSON.stringify({
-      writes: [
-        {
-          update: {
-            name: `${documentsPath}/pendingOnpayCustomers/${pendingId}`,
-            fields: {
-              email: { stringValue: email },
-              name: { stringValue: name },
-              phone: { stringValue: phone },
-              hasPaid: { booleanValue: true },
-              reference: { stringValue: reference || paymentId },
-              status: { stringValue: status },
-              provider: { stringValue: 'onpay' },
-              receivedAt: { timestampValue: receivedAt },
+  for (let attempt = 0; attempt < MAX_WRITE_ATTEMPTS; attempt += 1) {
+    const paymentResponse = await firestoreRequest(env, accessToken, `documents/onpayPayments/${paymentId}`, { method: 'GET' });
+    let paymentPrecondition = { exists: false };
+    if (paymentResponse.ok) {
+      const payment = await paymentResponse.json();
+      if (stringField(payment, 'email').toLowerCase() !== email || stringField(payment, 'reference') !== reference) {
+        throw new Error('Payment reference conflicts with an existing transaction');
+      }
+      if (stringField(payment, 'claimStatus') === 'claimed') return { alreadyClaimed: true };
+      paymentPrecondition = { updateTime: payment.updateTime };
+    } else if (paymentResponse.status !== 404) {
+      throw new Error(`Payment lookup failed (${paymentResponse.status})`);
+    }
+
+    const receivedAt = new Date().toISOString();
+    const response = await firestoreRequest(env, accessToken, 'documents:commit', {
+      method: 'POST',
+      body: JSON.stringify({
+        writes: [
+          {
+            update: {
+              name: `${documentsPath}/pendingOnpayCustomers/${pendingId}`,
+              fields: {
+                email: { stringValue: email },
+                name: { stringValue: name },
+                phone: { stringValue: phone },
+                hasPaid: { booleanValue: true },
+                reference: { stringValue: reference },
+                status: { stringValue: status },
+                provider: { stringValue: 'onpay' },
+                receivedAt: { timestampValue: receivedAt },
+              },
             },
+            updateMask: { fieldPaths: ['email', 'name', 'phone', 'hasPaid', 'reference', 'status', 'provider', 'receivedAt'] },
           },
-          updateMask: { fieldPaths: ['email', 'name', 'phone', 'hasPaid', 'reference', 'status', 'provider', 'receivedAt'] },
-        },
-        {
-          update: {
-            name: `${documentsPath}/onpayPayments/${paymentId}`,
-            fields: {
-              email: { stringValue: email },
-              reference: { stringValue: reference || paymentId },
-              status: { stringValue: status },
-              receivedAt: { timestampValue: receivedAt },
-              provider: { stringValue: 'onpay' },
-              claimStatus: { stringValue: 'pending_registration' },
+          {
+            update: {
+              name: paymentName,
+              fields: {
+                email: { stringValue: email },
+                reference: { stringValue: reference },
+                status: { stringValue: status },
+                receivedAt: { timestampValue: receivedAt },
+                provider: { stringValue: 'onpay' },
+                claimStatus: { stringValue: 'pending_registration' },
+              },
             },
+            updateMask: { fieldPaths: ['email', 'reference', 'status', 'receivedAt', 'provider', 'claimStatus'] },
+            currentDocument: paymentPrecondition,
           },
-          updateMask: { fieldPaths: ['email', 'reference', 'status', 'receivedAt', 'provider', 'claimStatus'] },
-        },
-      ],
-    }),
-  });
-  if (!response.ok) throw new Error(`Firestore commit failed (${response.status})`);
+        ],
+      }),
+    });
+    if (response.ok) return { alreadyClaimed: false };
+    if (attempt < MAX_WRITE_ATTEMPTS - 1 && await isFirestorePreconditionFailure(response)) continue;
+    throw new Error(`Firestore commit failed (${response.status})`);
+  }
+
+  throw new Error('Firestore commit retries exhausted');
 }
 
 export async function onRequest(context) {
@@ -95,15 +121,20 @@ export async function onRequest(context) {
     if (requiredBindings.some((key) => !env[key])) throw new Error('Firebase service account bindings are incomplete');
 
     const payload = await parsePayload(request);
-    const { email, status } = extractOnpayCustomer(payload);
+    const { email, reference, status } = extractOnpayCustomer(payload);
     if (!email || !email.includes('@')) return json({ error: 'A valid customer email is required' }, { status: 400 });
+    if (!reference) return json({ error: 'A payment reference is required' }, { status: 400 });
     if (!isSuccessfulOnpayStatus(status)) {
       console.info(JSON.stringify({ event: 'onpay_payment_ignored', requestId, status }));
       return json({ ok: true, recorded: false, reason: 'payment_not_confirmed' });
     }
 
     const accessToken = await getGoogleAccessToken(env);
-    await storePaidCustomer(env, accessToken, payload);
+    const { alreadyClaimed } = await storePaidCustomer(env, accessToken, payload);
+    if (alreadyClaimed) {
+      console.info(JSON.stringify({ event: 'onpay_payment_already_claimed', requestId }));
+      return json({ ok: true, recorded: true, alreadyClaimed: true });
+    }
     console.info(JSON.stringify({ event: 'onpay_paid_customer_recorded', requestId }));
     return json({ ok: true, recorded: true, pendingRegistration: true });
   } catch (error) {
