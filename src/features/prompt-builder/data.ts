@@ -62,7 +62,7 @@ export const contentTypes: ContentTypeOption[] = [
   },
   {
     id: 'goyang', label: 'Goyang2', shortLabel: 'Goyang2',
-    description: 'Siri visual produk dengan hook teks yang konsisten.',
+    description: 'Siri visual produk POV dengan tangan dan jam tangan yang konsisten.',
     tabs: ['Gambar', 'Prompt Flow'],
     fields: [
       durationField,

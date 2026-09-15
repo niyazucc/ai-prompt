@@ -50,7 +50,8 @@ export function PromptBuilder({ userName, onLogout }: PromptBuilderProps) {
   const selectedType = contentTypes.find((item) => item.id === formData.contentType) ?? contentTypes[0];
   const isImageTab = formData.activeTab === 'Gambar';
   const isFlowTab = formData.activeTab === 'Prompt Flow';
-  const isGoyangImage = formData.contentType === 'goyang' && isImageTab;
+  const isStandardImage = formData.contentType === 'standard' && isImageTab;
+  const captionValue = formData.values.caption ?? 'Tidak';
 
   function handleCategoryChange(contentType: ContentType) {
     const config = contentTypes.find((item) => item.id === contentType) ?? contentTypes[0];
@@ -184,18 +185,26 @@ export function PromptBuilder({ userName, onLogout }: PromptBuilderProps) {
                 <div className="image-prompt-options">
                   <div className="subpanel-heading">
                     <h3>Pilihan Prompt Gambar</h3>
-                    <p>{isGoyangImage ? 'Tetapkan warna hook untuk setiap gambar.' : 'Tetapkan warna hook untuk gambar pertama.'}</p>
+                    <p>{isStandardImage ? 'Tetapkan warna hook untuk gambar pertama.' : 'Pilih sama ada gambar perlu mempunyai caption atau tidak.'}</p>
                   </div>
-                  {isGoyangImage ? (
-                    <>
-                      {selectedType.fields.map((field, index) => (
-                        <SelectField key={field.id} id={field.id} label={`${index + 1}. ${field.label}`} value={formData.values[field.id] ?? field.options[0]} options={field.options} onChange={(value) => updateValue(field.id, value)} />
-                      ))}
-                    </>
-                  ) : (
+                  {isStandardImage ? (
                     <>
                       <SelectField id="hook-color-1" label="1. Warna Hook — Baris 1" value={formData.values.hookColor1 ?? 'Putih'} options={hookColors} onChange={(value) => updateValue('hookColor1', value)} />
                       <SelectField id="hook-color-2" label="2. Warna Hook — Baris 2" value={formData.values.hookColor2 ?? 'Putih'} options={hookColors} onChange={(value) => updateValue('hookColor2', value)} />
+                    </>
+                  ) : (
+                    <>
+                      <SelectField id="image-caption" label="1. Caption" value={captionValue} options={['Tidak', 'Ya']} onChange={(value) => updateValue('caption', value)} />
+                      {captionValue === 'Ya' && formData.contentType === 'goyang' ? (
+                        selectedType.fields.filter((field) => field.id !== 'durasi').map((field, index) => (
+                          <SelectField key={field.id} id={field.id} label={`${index + 2}. ${field.label}`} value={formData.values[field.id] ?? field.options[0]} options={field.options} onChange={(value) => updateValue(field.id, value)} />
+                        ))
+                      ) : captionValue === 'Ya' ? (
+                        <>
+                          <SelectField id="hook-color-1" label="2. Warna Hook — Baris 1" value={formData.values.hookColor1 ?? 'Putih'} options={hookColors} onChange={(value) => updateValue('hookColor1', value)} />
+                          <SelectField id="hook-color-2" label="3. Warna Hook — Baris 2" value={formData.values.hookColor2 ?? 'Putih'} options={hookColors} onChange={(value) => updateValue('hookColor2', value)} />
+                        </>
+                      ) : null}
                     </>
                   )}
                   <button className="generate-button" type="button" onClick={handleGenerate}>

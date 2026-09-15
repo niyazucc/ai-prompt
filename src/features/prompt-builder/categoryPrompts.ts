@@ -108,7 +108,7 @@ Overview jalan cerita.
 Kemudian tulis dialog setiap scene sahaja, sehingga lengkap ${count} scene.`;
 }
 
-function animationImage(data: PromptFormData): string {
+function animationImageWithCaption(data: PromptFormData): string {
   return `Gunakan skrip dan overview yang telah dipersetujui untuk ${data.values.scene}.
 Create an ultra realistic 3D product mascot advertisement in portrait 9:16.
 The product itself becomes a lively animated character.
@@ -137,7 +137,136 @@ No watermark. No logo modification. No extra text. Ultra HD.
 ${nextImage}`;
 }
 
-function povImage(data: PromptFormData): string {
+function animationImageWithoutCaption(): string {
+  return `Gunakan skrip yang telah dihasilkan sebagai panduan utama.
+
+Hasilkan satu gambar bagi setiap scene berdasarkan skrip tersebut.
+
+Maklumat:
+
+Format:
+9:16 Portrait
+
+Gaya Visual:
+Ultra-realistic 3D product mascot advertisement
+Cinematic
+Premium commercial rendering
+High-quality glossy materials
+Ultra HD
+Professional advertising photography
+Realistic reflections
+High saturation
+Film look
+
+Watak:
+Produk itu sendiri berperanan sebagai watak maskot yang hidup dan ekspresif.
+
+Ciri-ciri Watak:
+• Mata besar dan ekspresif.
+• Kening tebal dan ekspresif.
+• Mulut animasi.
+• Tangan kartun yang fleksibel.
+• Kaki kartun yang fleksibel.
+• Personaliti yang bertenaga dan sangat ekspresif.
+• Penampilan yang lucu serta menarik perhatian.
+• Watak memenuhi kira-kira 70% daripada keseluruhan bingkai.
+
+Keperluan Konsistensi Produk:
+
+• Pastikan produk kekal 100% sama dalam semua scene.
+• Label produk mesti dikekalkan sepenuhnya tanpa sebarang perubahan.
+• Jangan ubah nama, tulisan, logo asal, warna, bentuk, reka bentuk, pembungkusan, bahan, atau perkadaran produk.
+• Jangan tambahkan sebarang elemen pada label atau pembungkusan produk.
+• Pastikan bentuk dan saiz produk kekal konsisten dari satu scene ke scene yang lain.
+• Ciri-ciri maskot seperti mata, kening, mulut, tangan, dan kaki mesti kekal konsisten dalam semua scene.
+• Jangan ubah identiti visual produk.
+• Produk mesti kelihatan seperti produk sebenar yang diberikan personaliti maskot animasi.
+
+Latar Belakang:
+
+Latar belakang radial burst berwarna merah jingga yang kuat.
+
+• Pancaran tenaga yang dinamik.
+• Partikel cahaya terapung.
+• Kesan pergerakan yang dinamik.
+• Kontras tinggi.
+• Persekitaran pengiklanan komersial yang premium.
+• Suasana visual yang bertenaga.
+• Latar belakang mesti kekal konsisten sepanjang semua scene, kecuali perubahan yang diperlukan berdasarkan skrip.
+
+Pencahayaan:
+
+• Pencahayaan HDR.
+• Rim light sinematik.
+• Pantulan lembut dan realistik.
+• Pencahayaan berkualiti studio.
+• Saturasi tinggi.
+• Pencahayaan mesti disesuaikan dengan emosi dan aksi dalam setiap scene.
+• Pastikan highlight dan pantulan pada permukaan produk kelihatan realistik.
+
+Kamera:
+
+• Medium close-up.
+• Perspektif sedikit dari sudut rendah.
+• Komposisi potret.
+• Depth of field yang cetek.
+• Kualiti kamera komersial profesional.
+• Pembingkaian sinematik.
+• Perspektif semula jadi.
+• Pastikan maskot menjadi fokus utama.
+
+Ekspresi dan Emosi:
+
+• Bertenaga.
+• Lucu.
+• Menarik perhatian.
+• Sangat ekspresif.
+• Ceria dan bersahaja.
+• Bahasa tubuh animasi yang semula jadi.
+• Sesuai untuk iklan affiliate TikTok yang berpotensi menjadi tular.
+• Pastikan ekspresi dan bahasa tubuh selaras dengan skrip bagi setiap scene.
+
+Keperluan Visual:
+
+• Jangan sertakan sebarang sari kata.
+• Jangan sertakan sebarang kapsyen.
+• Jangan sertakan sebarang hook.
+• Jangan sertakan sebarang teks tambahan.
+• Jangan sertakan watermark.
+• Jangan ubah logo atau label asal produk.
+• Jangan tambahkan logo baharu.
+• Jangan tambahkan sebarang tulisan pada latar belakang.
+• Jangan tambahkan sebarang elemen yang tidak diperlukan dalam scene.
+• Pastikan persekitaran kelihatan kemas, premium, dinamik, dan realistik.
+
+Fokus Utama:
+
+• Produk sebagai watak utama.
+• Ekspresi maskot yang jelas.
+• Interaksi maskot berdasarkan skrip.
+• Identiti produk.
+• Bahan berkilat yang realistik.
+• Komposisi sinematik.
+• Persembahan komersial yang dinamik.
+
+Konsistensi Visual:
+
+Pastikan produk, label produk, reka bentuk produk, ciri-ciri maskot, mata, kening, mulut, tangan, kaki, warna, bahan, pencahayaan, latar belakang, pancaran tenaga, perspektif kamera, komposisi, dan gaya visual keseluruhan kekal konsisten dalam semua scene.
+
+Format Output Setiap Scene:
+
+Scene Number
+
+Hasilkan gambar untuk Scene 1 terlebih dahulu.
+
+Apabila saya menaip “Next”, hasilkan gambar untuk Scene 2.
+
+Teruskan kaedah yang sama bagi scene seterusnya sehingga semua scene selesai.
+
+Hasilkan setiap gambar dalam format 9:16 Portrait.`;
+}
+
+function povImageWithCaption(data: PromptFormData): string {
   return `Gunakan overview dan skrip yang telah dipersetujui untuk ${data.values.scene}.
 Style: POV Affiliate Marketing
 Format: Portrait 9:16
@@ -168,6 +297,128 @@ Hook:
 - Tiada teks tambahan, subtitle atau watermark. Kekalkan tulisan asal produk.
 
 ${nextImage}`;
+}
+
+function povImageWithoutCaption(): string {
+  return `Gunakan overview dan skrip yang telah diluluskan sebagai panduan utama.
+
+Mulakan dengan Scene 1 sahaja.
+
+Style:
+
+POV Affiliate Marketing
+
+Format:
+
+9:16 Portrait
+
+Gaya Visual:
+
+• Ultra-realistic.
+• Kualiti DSLR profesional.
+• Pencahayaan sinematik.
+• Tekstur kulit semula jadi.
+• Persekitaran realistik.
+• Gaya visual seperti filem.
+• Depth of field semula jadi.
+• Komposisi kamera handheld.
+• Perspektif POV yang autentik.
+• Produk mesti sentiasa menjadi fokus utama.
+
+Peraturan Produk:
+
+• Produk mesti 100% sama seperti dalam gambar asal.
+• Jangan ubah logo.
+• Jangan ubah tulisan asal pada produk.
+• Jangan ubah warna.
+• Jangan ubah bentuk.
+• Jangan ubah reka bentuk.
+• Jangan ubah pembungkusan.
+• Jangan tambah aksesori.
+• Jangan buang aksesori.
+• Jangan ubah saiz atau nisbah produk.
+• Pastikan material, tekstur, label, dan semua butiran produk kelihatan realistik.
+• Pastikan produk kelihatan seperti produk sebenar yang dirakam menggunakan kamera DSLR profesional.
+• Produk mesti kekal konsisten dalam semua scene.
+
+Peraturan Watak:
+
+• Hanya tangan yang boleh kelihatan.
+• Jangan tunjukkan muka.
+• Jangan tunjukkan kepala.
+• Jangan tunjukkan badan.
+• Jangan tunjukkan identiti atau bahagian tubuh lain yang tidak diperlukan.
+• Tangan mesti kelihatan realistik.
+• Gunakan tekstur kulit semula jadi.
+• Pastikan nisbah tangan realistik.
+• Pastikan anatomi jari kelihatan semula jadi.
+• Posisi dan pergerakan tangan hendaklah disesuaikan dengan keperluan setiap scene.
+• Pastikan tangan kelihatan natural ketika memegang, menggunakan, menunjukkan, atau berinteraksi dengan produk.
+
+Peraturan POV:
+
+• Kamera mesti mewakili pandangan mata pengguna.
+• Gunakan komposisi first-person POV.
+• Tangan mesti kelihatan seperti milik individu yang sedang menggunakan produk.
+• Gunakan pergerakan kamera handheld yang natural.
+• Elakkan pergerakan kamera yang terlalu artifisial.
+• Pastikan interaksi tangan dengan produk kelihatan meyakinkan.
+• Produk mesti kekal sebagai focal point utama sepanjang scene.
+
+Peraturan Background:
+
+• Background mesti selaras dengan jalan cerita dan situasi dalam scene.
+• Persekitaran mesti kelihatan realistik dan hidup.
+• Gunakan tekstur realistik serta butiran persekitaran semula jadi.
+• Pencahayaan mesti disesuaikan dengan masa, lokasi, mood, dan emosi scene.
+• Pastikan background tidak mengganggu fokus utama terhadap produk.
+• Kekalkan konsistensi visual bagi lokasi dan persekitaran apabila scene berlaku di tempat yang sama.
+
+Peraturan Lighting:
+
+• Gunakan pencahayaan sinematik yang realistik.
+• Pencahayaan mesti selaras dengan emosi dan suasana scene.
+• Gunakan highlights dan shadows yang natural.
+• Pastikan pantulan pada produk kelihatan realistik.
+• Pastikan pencahayaan kelihatan seperti rakaman sebenar menggunakan kamera profesional.
+
+Fokus Utama:
+
+• Produk.
+• Interaksi tangan dengan produk.
+• Pergerakan tangan yang natural.
+• Persembahan produk yang realistik.
+• Pengalaman POV.
+• Suasana emosi berdasarkan skrip.
+• Komposisi sinematik.
+• Visual affiliate marketing yang autentik.
+
+Keperluan Visual:
+
+• Jangan sertakan sebarang hook.
+• Jangan sertakan sebarang caption.
+• Jangan sertakan sebarang subtitle.
+• Jangan sertakan sebarang teks tambahan.
+• Jangan sertakan watermark.
+• Jangan sertakan logo tambahan.
+• Jangan tambahkan sebarang elemen yang tidak diperlukan dalam scene.
+• Pastikan produk sentiasa kelihatan jelas dan realistik.
+
+Konsistensi Visual:
+
+Pastikan produk, reka bentuk produk, logo, tulisan asal, warna, bentuk, pembungkusan, aksesori, tangan, tekstur kulit, perspektif kamera, pencahayaan, persekitaran, background, tona warna, depth of field, dan keseluruhan gaya sinematik kekal konsisten sepanjang semua scene.
+
+Format Output:
+
+Scene Number
+
+Hasilkan gambar untuk Scene 1 sahaja terlebih dahulu.
+
+Apabila saya menaip “NEXT”, hasilkan gambar untuk Scene 2.
+
+Teruskan kaedah yang sama untuk scene seterusnya sehingga semua scene selesai.
+
+Hasilkan setiap gambar dalam format 9:16 Portrait.`;
 }
 
 function flow(data: PromptFormData): string {
@@ -214,8 +465,12 @@ export function generateCategoryPrompt(data: PromptFormData): string | undefined
     if (data.contentType === 'pov') return povDialog(data);
   }
   if (data.activeTab === 'Gambar') {
-    if (data.contentType === 'animasi') return animationImage(data);
-    if (data.contentType === 'pov') return povImage(data);
+    if (data.contentType === 'animasi') {
+      return data.values.caption === 'Ya' ? animationImageWithCaption(data) : animationImageWithoutCaption();
+    }
+    if (data.contentType === 'pov') {
+      return data.values.caption === 'Ya' ? povImageWithCaption(data) : povImageWithoutCaption();
+    }
   }
   if (data.activeTab === 'Prompt Flow' && ['podcast', 'animasi', 'pov'].includes(data.contentType)) return flow(data);
   return undefined;

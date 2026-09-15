@@ -5,8 +5,8 @@ const priceHooks = `tiba ii separuh harga 😱📉, harga jatuh tak bagitau 😫
 
 const emotionHooks = `Memang melampau lah seller ni!! 😡, Siapa suruh jual murah macam ni?! 😈, Tak masuk akal betul harga dia! 😱, Geram betul tengok promo macam ni! 😠, Ni memang buat orang tak boleh tahan! 😤, Rugi besar kalau tak grab sekarang! 💸, Kenapa baru sekarang saya jumpa benda ni?! 😫, Jangan salahkan saya kalau awak terus checkout! 🛒, Seller ni memang nak buat poket kita bocor! 💰, Serius lah... murah sangat ni! 💯, Takkan harga macam ni pun boleh? 😲, Saya dah cakap jangan tengok video ni! 🛑, Bahaya betul promo macam ni! 💣, Ni bukan diskaun biasa-biasa! 🤩, Macam tak percaya tengok harga dia! 👀, Stop buat promo macam ni boleh tak?! ❌, Memang tak bagi peluang orang berjimat! 😭, Seller ni memang suka buat orang rambang mata! 🥴, Saya geram sebab baru tahu sekarang! 😤, Kalau lambat, memang terlepas! 🏃, Kenapa semua orang diam je pasal produk ni? 🤔, Ni memang level racun yang serius! ☠️, Tak patut murah macam ni! ‼️, Saya marah sebab stok selalu habis! 💔, Boleh tak jangan buat saya asyik checkout?! 🥺, Asal buka TikTok je keluar benda best macam ni! 🎵, Ni memang ujian untuk orang yang nak berjimat! 😥, Jangan klik kalau tak nak terbeli! ✋, Seller ni memang tahu macam mana nak goda customer! 😉, Saya nak komplen... produk ni buat saya ketagih beli! 🛍️, Murah sangat sampai saya syak! 🤨, Dah banyak kali repeat, masih tak puas! 😍, Ni bukan promo, ni gila harga dia! 🤪, Kalau tak beli sekarang, menyesal nanti! ❗, Seller ni memang kejam! Harga macam ni! 😡, Saya sumpah, berbaloi gila! 💯, Ramai dah beli, awak masih tunggu apa?! 👀, Rugi gila kalau tak ambil peluang ni! 😭, Produk ni memang wajib ada! 🤩, Jangan jadi orang terakhir yang tahu! ⚠️, Harga naik bila-bila masa, cepat sebelum menyesal! 📈, Saya sendiri tak sangka best sangat! 👍, Nak cari yang macam ni memang susah! 💯, Ni memang hidden gem! 💎, Kalau saya tak share, memang rugi! 🥺, Memang berbaloi setiap sen! ✅, Kualiti dia memang tip top! 🔥, Saya dah cuba, memang confirm puas hati! 😌, Jangan tunggu orang lain beli dulu! 📢, Klik sekarang sebelum promo berakhir! ⏰`;
 
-export function generateShakePrompt(data: PromptFormData): string {
-  if (data.activeTab === 'Gambar') return `Buatkan ${data.values.gambar ?? '3 Gambar'} size portrait daripada gambar yang saya bagi. Buat character tangan lelaki memakai jam tangan hitam memegang produk.
+function generateShakeImageWithCaption(data: PromptFormData): string {
+  return `Buatkan ${data.values.gambar ?? '3 Gambar'} size portrait daripada gambar yang saya bagi. Buat character tangan lelaki memakai jam tangan hitam memegang produk.
 Setiap gambar kekalkan character tangan dan produk, cuma ubah background dan hook sahaja.
 Mula dengan Gambar 1 sahaja.
 
@@ -35,6 +35,166 @@ Tiada tulisan tambahan, subtitle atau watermark selain hook dan tulisan asal pro
 Terus hasilkan gambar untuk Gambar 1 sekarang. Selepas itu, tunggu arahan saya.
 Apabila saya taip NEXT, terus hasilkan gambar untuk scene seterusnya berdasarkan overview yang sama dengan gaya visual yang konsisten sehingga lengkap jumlah gambar yang dipilih.
 Buatkan gambar size 9:16.`;
+}
+
+export function generateShakePrompt(data: PromptFormData): string {
+  if (data.activeTab === 'Gambar' && data.values.caption === 'Ya') return generateShakeImageWithCaption(data);
+  if (data.activeTab === 'Gambar') return `Gunakan overview dan skrip yang telah diluluskan sebagai panduan utama.
+
+Mulakan dengan Scene 1 sahaja.
+
+Format:
+
+9:16 Portrait
+
+Style:
+
+POV Affiliate Marketing
+
+Gaya Visual:
+
+• Ultra-realistic.
+• Kualiti DSLR profesional.
+• Pencahayaan sinematik.
+• Tekstur kulit semula jadi.
+• Persekitaran realistik.
+• Gaya visual seperti filem.
+• Depth of field semula jadi.
+• Komposisi kamera handheld.
+• Perspektif first-person POV yang autentik.
+• Kualiti fotografi komersial profesional.
+• Produk mesti sentiasa menjadi fokus utama.
+
+Character:
+
+Gunakan hanya tangan lelaki sebagai watak utama yang berinteraksi dengan produk.
+
+Peraturan Character:
+
+• Hanya tangan lelaki boleh kelihatan.
+• Jangan paparkan muka.
+• Jangan paparkan kepala.
+• Jangan paparkan badan.
+• Jangan paparkan bahagian tubuh lain yang tidak diperlukan.
+• Tangan mesti kelihatan ultra-realistik.
+• Kekalkan tekstur kulit semula jadi.
+• Gunakan anatomi tangan lelaki yang realistik.
+• Pastikan jari dan proporsi tangan kelihatan natural.
+• Tangan mesti memakai jam tangan yang sama dalam semua scene.
+• Jam tangan mesti kekal konsisten dari segi bentuk, warna, reka bentuk, saiz, dan kedudukan.
+• Jangan ubah atau gantikan jam tangan.
+• Posisi dan gesture tangan boleh berubah mengikut keperluan setiap scene.
+• Pastikan pergerakan dan posisi tangan kelihatan natural serta meyakinkan.
+
+Peraturan Produk:
+
+• Produk mesti 100% sama seperti dalam gambar asal.
+• Jangan ubah logo.
+• Jangan ubah tulisan asal.
+• Jangan ubah warna.
+• Jangan ubah bentuk.
+• Jangan ubah reka bentuk.
+• Jangan ubah pembungkusan.
+• Jangan ubah material atau tekstur asal.
+• Jangan tambah aksesori.
+• Jangan buang aksesori.
+• Jangan ubah saiz atau proporsi produk.
+• Jangan ubah label produk.
+• Jangan tambah sebarang elemen pada produk.
+• Pastikan setiap perincian produk kekal tepat.
+• Produk mesti kelihatan ultra-realistik dan seimbang dari segi proporsi.
+• Pastikan produk kelihatan seperti produk sebenar yang dirakam menggunakan kamera DSLR profesional.
+• Produk mesti kekal sama dalam semua scene.
+
+Peraturan POV:
+
+• Kamera mesti mewakili pandangan mata pengguna.
+• Gunakan perspektif first-person POV.
+• Tangan lelaki mesti kelihatan seperti tangan individu yang sedang memegang atau menggunakan produk.
+• Gunakan komposisi kamera handheld.
+• Pergerakan kamera dan perspektif mesti kelihatan natural.
+• Elakkan perspektif yang terlalu artifisial.
+• Pastikan produk sentiasa menjadi focal point utama.
+• Pastikan interaksi antara tangan dan produk kelihatan realistik.
+
+Peraturan Background:
+
+• Latar belakang mesti berdasarkan jalan cerita dan situasi bagi setiap scene.
+• Persekitaran mesti kelihatan realistik, hidup, dan natural.
+• Gunakan tekstur serta perincian persekitaran yang realistik.
+• Jangan gunakan latar belakang yang kelihatan artifisial atau seperti CGI.
+• Pastikan latar belakang tidak mengganggu fokus terhadap produk.
+• Jika lokasi yang sama digunakan dalam beberapa scene, kekalkan konsistensi visual.
+• Latar belakang boleh berubah mengikut keperluan jalan cerita.
+
+Peraturan Lighting:
+
+• Gunakan pencahayaan sinematik yang realistik.
+• Pencahayaan mesti sesuai dengan emosi dan suasana setiap scene.
+• Gunakan highlight dan bayang-bayang semula jadi.
+• Pastikan pantulan cahaya pada produk kelihatan realistik.
+• Pastikan pencahayaan pada tangan dan produk sepadan dengan persekitaran.
+• Pastikan keseluruhan pencahayaan kelihatan seperti rakaman filem sebenar.
+
+Komposisi Kamera:
+
+• Format portrait 9:16.
+• Gaya visual DSLR profesional.
+• Pembingkaian handheld yang natural.
+• Perspektif kamera yang realistik.
+• Depth of field semula jadi.
+• Produk mesti berada pada focal point utama.
+• Pastikan produk mempunyai ruang yang mencukupi dalam frame dan tidak terpotong secara tidak sengaja.
+• Gunakan sudut kamera yang sesuai dengan aksi dalam setiap scene.
+• Komposisi mesti kelihatan seperti kandungan POV affiliate marketing yang sebenar.
+
+Fokus Utama:
+
+• Produk.
+• Tangan lelaki.
+• Interaksi tangan dengan produk.
+• Jam tangan yang dipakai.
+• Pergerakan tangan yang natural.
+• Persembahan produk yang realistik.
+• Pengalaman POV.
+• Visual sinematik.
+• Suasana affiliate marketing yang autentik.
+
+Keperluan Visual:
+
+• Jangan sertakan hook.
+• Jangan sertakan caption.
+• Jangan sertakan subtitle.
+• Jangan sertakan sebarang teks tambahan.
+• Jangan sertakan watermark.
+• Jangan sertakan logo tambahan.
+• Jangan tambahkan elemen grafik.
+• Jangan tambahkan aksesori yang tidak terdapat dalam gambar asal.
+• Jangan ubah rupa atau identiti produk.
+• Jangan ubah rupa jam tangan.
+• Pastikan visual kelihatan bersih, realistik, sinematik, dan profesional.
+
+Konsistensi Visual:
+
+Pastikan tangan lelaki, tekstur kulit, jam tangan, produk, reka bentuk produk, logo, tulisan asal, warna, bentuk, pembungkusan, aksesori, perspektif kamera, pencahayaan, latar belakang, tona warna, depth of field, dan keseluruhan gaya visual kekal konsisten dalam semua scene.
+
+Peraturan Scene:
+
+Hasilkan 3 gambar keseluruhan berdasarkan overview dan skrip yang telah diluluskan.
+
+Mulakan dengan Scene 1 sahaja.
+
+Jangan hasilkan Scene 2 atau Scene 3 sehingga saya memberikan arahan “NEXT”.
+
+Apabila saya menaip “NEXT”, terus hasilkan gambar untuk scene seterusnya berdasarkan overview yang sama.
+
+Kekalkan semua character, produk, jam tangan, dan identiti visual yang telah ditetapkan.
+
+Format Output:
+
+Scene 1
+
+Hasilkan gambar sekarang dalam format 9:16 Portrait.`;
 
   const duration = sceneSeconds(data);
   const time = (seconds: number) => (seconds * duration / 8).toFixed(3).replace(/0+$/, '').replace(/\.$/, '.0');

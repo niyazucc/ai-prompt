@@ -168,7 +168,7 @@ Pastikan visual yang konsisten.
 Buatkan gambar size 9:16.`;
 }
 
-function generatePodcastImagePrompt(data: PromptFormData): string {
+function generatePodcastImagePromptWithCaption(data: PromptFormData): string {
   const color1 = data.values.hookColor1 ?? 'Putih';
   const color2 = data.values.hookColor2 ?? 'Putih';
 
@@ -248,6 +248,82 @@ Pastikan visual yang konsisten.
 Buatkan gambar size 9:16.`;
 }
 
+function generatePodcastImagePromptWithoutCaption(): string {
+  return `Gunakan skrip yang telah dihasilkan sebagai panduan utama.
+
+Hasilkan satu gambar untuk setiap scene berdasarkan skrip tersebut.
+
+Maklumat:
+
+Format:
+9:16 Portrait
+
+Gaya Visual:
+Ultra-realistic
+Cinematic
+Podcast studio profesional
+Kamera profesional
+Pencahayaan realistik
+Tekstur kulit semula jadi
+Gaya filem
+
+Watak:
+[Kekalkan watak yang sama sepanjang semua scene]
+
+Keperluan Konsistensi:
+
+- Pastikan wajah setiap watak kekal sama dari satu scene ke scene yang lain.
+- Kekalkan ciri-ciri wajah secara konsisten.
+- Pastikan pakaian tidak berubah.
+- Kekalkan reka bentuk dan susun atur podcast studio.
+- Pastikan mikrofon yang digunakan kekal sama.
+- Kekalkan kamera, sudut rakaman, dan persediaan visual.
+- Pastikan warna serta reka bentuk studio tidak berubah.
+- Elakkan sebarang perubahan pada wajah atau usia watak.
+- Kekalkan gaya rambut dan penampilan keseluruhan setiap watak.
+- Tiada watermark.
+- Tiada logo.
+- Tiada sari kata.
+- Tiada sebarang teks atau tulisan dalam gambar.
+
+Latar Belakang:
+Studio podcast moden dan profesional dengan pencahayaan LED.
+
+Pastikan pencahayaan, sudut kamera, komposisi, persekitaran, dan gaya visual keseluruhan kekal konsisten dalam semua scene.
+
+Jika terdapat produk dalam sesuatu scene:
+
+- Pastikan produk kelihatan ultra-realistik.
+- Pastikan bentuk, saiz, warna, bahan, dan perkadaran produk kelihatan semula jadi serta tepat.
+- Jangan ubah reka bentuk atau penampilan asal produk.
+- Pastikan produk kelihatan seperti objek sebenar yang dirakam menggunakan kamera profesional.
+
+Fokus Utama:
+
+- Ekspresi wajah.
+- Bahasa tubuh yang semula jadi.
+- Ekspresi emosi.
+- Interaksi realistik antara watak.
+- Hubungan mata yang semula jadi.
+- Suasana podcast yang autentik.
+
+Konsistensi Visual:
+
+Pastikan identiti wajah, gaya rambut, pakaian, mikrofon, studio, perabot, pencahayaan LED, persediaan kamera, tona warna, persekitaran, dan gaya sinematik setiap watak kekal konsisten sepanjang semua scene.
+
+Format Output Setiap Scene:
+
+Scene Number
+
+Hasilkan gambar untuk Scene 1 terlebih dahulu.
+
+Apabila saya menaip “Next”, hasilkan gambar untuk Scene 2.
+
+Teruskan dengan kaedah yang sama untuk scene seterusnya sehingga semua scene selesai.
+
+Hasilkan setiap gambar dalam format 9:16 Portrait.`;
+}
+
 function generateStandardFlowPrompt(data: PromptFormData): string {
   return `Gunakan overview dan skrip yang telah dipersetujui.
 
@@ -305,14 +381,21 @@ export function generatePrompt(data: PromptFormData): string {
     if (data.activeTab === 'Dialog') {
       prompt = data.contentType === 'podcast' ? generatePodcastDialogPrompt(data) : generateStandardDialogPrompt(data);
     } else if (data.activeTab === 'Gambar') {
-      prompt = data.contentType === 'podcast' ? generatePodcastImagePrompt(data) : generateStandardImagePrompt(data);
+      prompt = data.contentType === 'podcast'
+        ? data.values.caption === 'Ya'
+          ? generatePodcastImagePromptWithCaption(data)
+          : generatePodcastImagePromptWithoutCaption()
+        : generateStandardImagePrompt(data);
     } else {
       prompt = generateStandardFlowPrompt(data);
     }
   }
   const context = data.context.trim();
+  const usesFixedImageTemplate = data.activeTab === 'Gambar'
+    && data.contentType !== 'standard'
+    && data.values.caption !== 'Ya';
   // Existing dialog templates already include the additional context.
-  if (context && !(data.activeTab === 'Dialog' && ['standard', 'podcast'].includes(data.contentType))) {
+  if (context && !usesFixedImageTemplate && !(data.activeTab === 'Dialog' && ['standard', 'podcast'].includes(data.contentType))) {
     prompt += '\n\nArahan tambahan:\n' + context;
   }
   return prompt;
