@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { FirebaseError } from 'firebase/app';
 import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
-import { CreditCard, Eye, EyeOff, LoaderCircle, LockKeyhole, Mail, Sparkles } from 'lucide-react';
+import { CreditCard, Eye, EyeOff, LoaderCircle, LockKeyhole, Mail } from 'lucide-react';
 
 import { auth } from '../../../lib/firebase';
 import { RegistrationTerms } from './RegistrationTerms';
@@ -58,9 +58,9 @@ export function LoginPage() {
       <ThemeToggle />
       <div className="auth-glow" aria-hidden="true" />
       <section className="auth-card" aria-labelledby="login-title">
-        <a className="brand auth-brand" href="/" aria-label="Prompt AI Convert Sale">
-          <span className="brand-mark"><Sparkles size={18} /></span>
-          <span>Prompt AI<span className="brand-dot">.</span></span>
+        <a className="brand auth-brand" href="/" aria-label="Promptly Tool">
+          <img className="brand-icon" src="/images/logo-promptly-icon.png" alt="" />
+          <span>Promptly Tool<span className="brand-dot">.</span></span>
         </a>
         <div className="auth-heading">
           <span>Portal ahli</span>

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { reload, sendEmailVerification, type User } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { CreditCard, LoaderCircle, LogOut, MailCheck, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
+import { CreditCard, LoaderCircle, LogOut, MailCheck, RefreshCw, ShieldCheck } from 'lucide-react';
 
 import { db } from '../../../lib/firebase';
 import { ThemeToggle } from '../../../components/ui/ThemeToggle';
@@ -92,9 +92,9 @@ export function PaymentGate({ user, onLogout, children }: PaymentGateProps) {
       <ThemeToggle />
       <div className="auth-glow" aria-hidden="true" />
       <section className="auth-card payment-card" aria-labelledby="payment-title">
-        <a className="brand auth-brand" href="/" aria-label="Prompt AI Convert Sale">
-          <span className="brand-mark"><Sparkles size={18} /></span>
-          <span>Prompt AI<span className="brand-dot">.</span></span>
+        <a className="brand auth-brand" href="/" aria-label="Promptly Tool">
+          <img className="brand-icon" src="/images/logo-promptly-icon.png" alt="" />
+          <span>Promptly Tool<span className="brand-dot">.</span></span>
         </a>
         <div className="payment-icon">{isEmailVerified ? <ShieldCheck size={27} /> : <MailCheck size={27} />}</div>
         <div className="auth-heading">

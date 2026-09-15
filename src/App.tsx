@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
-import { LoaderCircle, Sparkles } from 'lucide-react';
+import { LoaderCircle } from 'lucide-react';
 
 import { LoginPage } from './features/auth/components/LoginPage';
 import { PaymentGate } from './features/auth/components/PaymentGate';
@@ -19,7 +19,7 @@ export function App() {
   if (isAuthLoading) {
     return (
       <main className="auth-loading" aria-label="Memeriksa sesi pengguna">
-        <span className="brand-mark"><Sparkles size={18} /></span>
+        <img className="brand-icon loading-brand-icon" src="/images/logo-promptly-icon.png" alt="Promptly Tool" />
         <LoaderCircle className="spin" size={22} />
         <p>Memeriksa akses...</p>
       </main>

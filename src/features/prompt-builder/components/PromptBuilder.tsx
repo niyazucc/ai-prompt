@@ -104,9 +104,9 @@ export function PromptBuilder({ userName, onLogout }: PromptBuilderProps) {
   return (
     <div className="app-shell">
       <header className="site-header">
-        <a className="brand" href="#top" aria-label="Prompt AI Convert Sale">
-          <span className="brand-mark"><Sparkles size={18} /></span>
-          <span>Prompt AI<span className="brand-dot">.</span></span>
+        <a className="brand" href="#top" aria-label="Promptly Tool">
+          <img className="brand-icon" src="/images/logo-promptly-icon.png" alt="" />
+          <span>Promptly Tool<span className="brand-dot">.</span></span>
         </a>
         <nav className={isMenuOpen ? 'header-nav is-open' : 'header-nav'} aria-label="Navigasi utama">
           <a href="#builder" onClick={() => setIsMenuOpen(false)}><Menu size={14} /> Menu</a>
@@ -124,7 +124,7 @@ export function PromptBuilder({ userName, onLogout }: PromptBuilderProps) {
 
       <main id="top">
         <section className="hero" aria-labelledby="hero-title">
-          <div className="eyebrow"><Zap size={14} fill="currentColor" /> Prompt AI Convert Sale</div>
+          <div className="eyebrow"><Zap size={14} fill="currentColor" /> Promptly Tool</div>
           <h1 id="hero-title">Pilih gaya.<br /><em>Jana prompt jualan.</em></h1>
           <p>Pilih jenis kandungan, tetapkan watak dan suasana, kemudian dapatkan prompt lengkap yang terus boleh ditampal ke dalam ChatGPT.</p>
           <a className="hero-link" href="#builder">Mula membina <ArrowRight size={17} /></a>
@@ -140,7 +140,7 @@ export function PromptBuilder({ userName, onLogout }: PromptBuilderProps) {
 
           <div className="builder-grid">
             <aside className="type-panel" aria-label="Kategori utama">
-              <p className="panel-label">Prompt AI Convert Sale</p>
+              <p className="panel-label">Create your AI prompt</p>
               <div className="type-list">
                 {contentTypes.map((item, index) => {
                   const Icon = contentIcons[item.id];
@@ -265,7 +265,7 @@ export function PromptBuilder({ userName, onLogout }: PromptBuilderProps) {
       </main>
 
       <a className="whatsapp-button" href="https://wa.link/nvxfzf" target="_blank" rel="noreferrer">WhatsApp Admin</a>
-      <footer><a className="brand footer-brand" href="#top"><span className="brand-mark"><Sparkles size={15} /></span>Prompt AI<span className="brand-dot">.</span></a><p>Bina dengan jelas. Menjual dengan yakin.</p><span>© 2026 Promptly Studio</span></footer>
+      <footer><a className="brand footer-brand" href="#top"><img className="brand-icon" src="/images/logo-promptly-icon.png" alt="" />Promptly Tool<span className="brand-dot">.</span></a><p>Bina dengan jelas. Menjual dengan yakin.</p><span>© {new Date().getFullYear()} WOI CREATIVE STUDIO</span></footer>
     </div>
   );
 }
