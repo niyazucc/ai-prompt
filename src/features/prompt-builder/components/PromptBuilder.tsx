@@ -264,7 +264,7 @@ export function PromptBuilder({ userName, onLogout }: PromptBuilderProps) {
         <section className="tips-section" id="tips"><Sparkles size={20} /><div><span>Tip prompt</span><p>Selepas menampal prompt, upload gambar produk yang jelas supaya AI dapat mengenal pasti label, ciri dan pembungkusan dengan tepat.</p></div></section>
       </main>
 
-      <a className="whatsapp-button" href="https://wa.me/" target="_blank" rel="noreferrer">WhatsApp Admin</a>
+      <a className="whatsapp-button" href="https://wa.link/nvxfzf" target="_blank" rel="noreferrer">WhatsApp Admin</a>
       <footer><a className="brand footer-brand" href="#top"><span className="brand-mark"><Sparkles size={15} /></span>Prompt AI<span className="brand-dot">.</span></a><p>Bina dengan jelas. Menjual dengan yakin.</p><span>© 2026 Promptly Studio</span></footer>
     </div>
   );
